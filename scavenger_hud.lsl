@@ -21,12 +21,12 @@ list tokenList = [];
 //Encode & Decode Functions (for security)
 string Xor(string data)
 {
-     return llXorBase64(llStringToBase64(data), llStringToBase64((string)llGetOwner() + XOR_KEY));
+     return llXorBase64(llStringToBase64(data), llStringToBase64(XOR_KEY));
 }
  
 string Dexor(string data) 
 {
-     return llBase64ToString(llXorBase64(data, llStringToBase64((string)llGetOwner() + XOR_KEY)));
+     return llBase64ToString(llXorBase64(data, llStringToBase64(XOR_KEY)));
 }
 
 //HUD Functions
@@ -108,10 +108,11 @@ default
     {
         list parameterList = llParseString2List(Dexor(message), [","], [""]);
         
-        llOwnerSay(message);
+        llOwnerSay(Dexor(message));
         
         if(llGetListLength(parameterList) == 4)
         {
+            llOwnerSay("Correct Parameter.");
             string timeStamp = llList2Key(parameterList, TIME_STAMP);        
             key avatarKey = llList2Key(parameterList, AVATAR_KEY);
             string command = llList2String(parameterList, COMMAND);
