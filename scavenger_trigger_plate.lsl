@@ -1,7 +1,8 @@
 /*Object Settings - Make Changes Here*/
 string TOKEN_NAME = "Educational"; //VSD Value (Pick valid value from VSD_LIST below if this is not a decoy)
 string TRIGGER_ID = "Educational Token Dispenser"; //Object name - Make sure this matches with the trigger plate settings
-integer ACTIVATION_TIME = 30;  //Time until object disappear (Seconds) after being activated (make sure ALWAYS_VISIBLE = FALSE)
+
+integer ACTIVATION_TIME = 30;  //Time until object disappear (Seconds) after being activated (make sure ALWAYS_VISIBLE = FALSE and this matches with the trigger plate/button settings)
 
 /*Global Constants*/
 integer SCAVENGER_HUD_CHANNEL = -498; 
