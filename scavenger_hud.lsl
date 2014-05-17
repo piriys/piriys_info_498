@@ -21,12 +21,12 @@ list tokenList = [];
 //Encode & Decode Functions (for security)
 string Xor(string data)
 {
-     return llXorBase64(llStringToBase64(data), llStringToBase64(XOR_KEY));
+    return llXorBase64(llStringToBase64(data), llStringToBase64(XOR_KEY + (string)llGetOwner()));
 }
  
 string Dexor(string data) 
 {
-     return llBase64ToString(llXorBase64(data, llStringToBase64(XOR_KEY)));
+    return llBase64ToString(llXorBase64(data, llStringToBase64(XOR_KEY + (string)llGetOwner())));
 }
 
 //HUD Functions
@@ -60,11 +60,18 @@ AddToken(string name)
     integer vsdIndex = llListFindList(VSD_LIST, [name]);
     integer itemIndex = llListFindList(tokenList, [name]);    
     
-    if(vsdIndex != -1 & itemIndex == -1)
+    if(vsdIndex != -1)
     {
-        tokenList += name; 
-        llOwnerSay("You obtained " + name + " token.");
-        llSay(DEBUG_CHANNEL, llGetDisplayName(llGetOwner()) + " obtained " + name + " token.");
+        if(itemIndex == -1)
+        {
+            tokenList += name; 
+            llOwnerSay("You obtained " + name + " token.");
+            llSay(DEBUG_CHANNEL, llGetDisplayName(llGetOwner()) + " obtained " + name + " token.");
+        }
+        else
+        {
+            llOwnerSay("You already have" + name + " token.");            
+        }
     }
     
     RefreshHUD();
@@ -108,6 +115,7 @@ default
     {
         list parameterList = llParseString2List(Dexor(message), [","], [""]);
         
+        llSay(0, message);
         llOwnerSay(Dexor(message));
         
         if(llGetListLength(parameterList) == 4)

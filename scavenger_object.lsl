@@ -1,5 +1,5 @@
 //Object Settings
-string TOKEN_NAME = "Courtesy";    
+string TOKEN_NAME = "Privacy";    
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
@@ -20,14 +20,14 @@ integer PARAMETER = 3;
 integer listenHandle = 0;
 
 //Encode & Decode Functions (for security)
-string Xor(string data)
+string Xor(string data, string xorKey)
 {
-     return llXorBase64(llStringToBase64(data), llStringToBase64(XOR_KEY));
+     return llXorBase64(llStringToBase64(data), llStringToBase64(xorKey));
 }
  
-string Dexor(string data) 
+string Dexor(string data, string xorKey) 
 {
-     return llBase64ToString(llXorBase64(data, llStringToBase64(XOR_KEY)));
+     return llBase64ToString(llXorBase64(data, llStringToBase64(xorKey)));
 }
 
 default
@@ -45,7 +45,7 @@ default
         string command = "ADD_TOKEN";
         string parameter = TOKEN_NAME;
         
-        string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter);
+        string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);
         
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);
     }
