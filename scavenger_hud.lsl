@@ -70,7 +70,7 @@ AddToken(string name)
         }
         else
         {
-            llOwnerSay("You already have" + name + " token.");            
+            llOwnerSay("You already have " + name + " token.");            
         }
     }
     
