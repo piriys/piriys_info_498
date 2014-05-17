@@ -1,20 +1,27 @@
-//Object Settings
-string TOKEN_NAME = "Privacy";    
-//Global Constants
+/*Object Settings - Make Changes Here*/
+string TOKEN_NAME = "Educational"; //VSD Value (Pick valid value from VSD_LIST below if this is not a decoy)
+string TRIGGER_ID = "Educational Token Dispenser"; //Object name - Make sure this matches with the trigger plate settings
+
+integer ALWAYS_VISIBLE = TRUE; //FALSE if there is another object that triggers this object to appear
+integer ACTIVATION_TIME = 30;  //Time until object disappear (Seconds) after being activated (make sure ALWAYS_VISIBLE = FALSE)
+float DEACTIVATED_ALPHA = 0.2; //1.0 for fully opaque, 0.0 for fully transparent 
+
+/*Global Constants*/
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
     
-//Index Constants for Incoming Parameters
+/*Index Constants for Incoming Parameters*/
 integer TIME_STAMP = 0;
-integer AVATAR_KEY = 1;
+integer ID = 1;
 integer COMMAND = 2;
 integer PARAMETER = 3;
 
-//Global Variables
+/*Global Variables*/
 integer listenHandle = 0;
+integer timerCounter = 1;
 
-//Encode & Decode Functions (for security)
+/*Encode & Decode Functions (for security)*/
 string Xor(string data, string xorKey)
 {
      return llXorBase64(llStringToBase64(data), llStringToBase64(xorKey));
@@ -29,8 +36,61 @@ default
 {
     state_entry()
     {
-        llListenRemove(listenHandle);
-        listenHandle = llListen(SCAVENGER_OBJECT_CHANNEL, "", "", "");
+        if(!ALWAYS_VISIBLE)
+        {
+            llSetAlpha(DEACTIVATED_ALPHA, ALL_SIDES);
+            llListenRemove(listenHandle);
+            listenHandle = llListen(SCAVENGER_OBJECT_CHANNEL, "", "", "");
+        }
+        else
+        {
+            state activated;   
+        }
+    }
+    state_exit()
+    {
+        llListenRemove(listenHandle);          
+    }
+
+    
+    listen(integer channel, string name, key id, string message)
+    {
+        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);
+        
+        //For Debugging
+        //llOwnerSay(Dexor(message));
+        
+        if(llGetListLength(parameterList) == 4)
+        {
+            //For Debugging
+            //llOwnerSay("Correct Parameter.");
+            
+            string timeStamp = llList2Key(parameterList, TIME_STAMP);        
+            string triggerID = llList2String(parameterList, ID);
+            string command = llList2String(parameterList, COMMAND);
+            string parameter = llList2String(parameterList, PARAMETER);
+            
+            if(triggerID == TRIGGER_ID)
+            {
+                if(command == "ACTIVATE")
+                {
+                    state activated;
+                }
+            }
+        }
+    }    
+}
+
+state activated
+{
+    state_entry()
+    {
+        llSetAlpha(1.0, ALL_SIDES);          
+        if(!ALWAYS_VISIBLE)
+        {
+            timerCounter = 1;
+            llSetTimerEvent(1.0);
+        }
     }
     
     touch_end(integer num_detected)
@@ -43,6 +103,20 @@ default
         string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);
         
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);
+    }
+      
+    timer()
+    {
+        if(timerCounter != ACTIVATION_TIME)
+        {
+            timerCounter++;   
+        }
+        else
+        {
+            llSetTimerEvent(0.0);
+            timerCounter = 1;
+            state default;   
+        }
     }
 }
     
