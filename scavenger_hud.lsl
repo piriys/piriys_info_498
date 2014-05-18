@@ -78,7 +78,7 @@ integer AddToken(string name)
         {
             tokenList += name; 
             llOwnerSay("You obtained " + name + " token.");
-            llSay(DEBUG_CHANNEL, llGetDisplayName(llGetOwner()) + " obtained " + name + " token.");
+            //llSay(DEBUG_CHANNEL, llGetDisplayName(llGetOwner()) + " obtained " + name + " token.");
             RefreshHUD();
         }
         else
