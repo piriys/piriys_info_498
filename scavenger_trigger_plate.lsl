@@ -1,7 +1,8 @@
-/*Trigger Plate Settings - Make Changes Here*/
+/*v### Trigger Plate Settings - Make Changes Below ###v*/
 string TOKEN_NAME = "Educational"; //VSD Value (Pick valid value from VSD_LIST below if this is not a decoy)
 string TRIGGER_ID = "Educational Token Dispenser"; //Object name - Make sure this matches with the object settings in scavenger_object.lsl, meaningful name preferred
 integer ACTIVATION_TIME = 30;  //Time until object disappears (seconds) after being activated (make sure ALWAYS_VISIBLE = FALSE in the scavenger_object.lsl)
+/*^### Trigger Plate Settings - Make Changes Above ###^*/
 
 /*Global Constants*/
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -53,22 +54,13 @@ state activated
 {
     state_entry()
     {
-        timerCounter = 1;
-        llSetTimerEvent(1.0);
+        llSetTimerEvent(ACTIVATION_TIME);
     }
       
     timer()
     {
-        if(timerCounter != ACTIVATION_TIME)
-        {
-            timerCounter++;   
-        }
-        else
-        {
-            llSetTimerEvent(0.0);
-            timerCounter = 1;
-            state default;   
-        }
+		llSetTimerEvent(0.0);
+		state default;   
     }
 }
     
