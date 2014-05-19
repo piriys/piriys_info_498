@@ -1,10 +1,11 @@
 /*Scavenger Object Settings - Make Changes Here*/
 string TOKEN_NAME = "Educational"; //VSD Value (Pick valid value from VSD_LIST below if this is not a decoy)
 string TRIGGER_ID = "Educational Token Dispenser"; //Object name - Make sure this matches with the trigger plate/button settings in scavenger_trigger_button.lsl or scavenger_trigger_plate.lsl, meaningful name preferred
-
 integer ALWAYS_VISIBLE = TRUE; //FALSE if there is another object that triggers this object to appear
 integer ACTIVATION_TIME = 30;  //Time until object disappears (seconds) after being activated (make sure ALWAYS_VISIBLE = FALSE and this matches with the object settings)
 float DEACTIVATED_ALPHA = 0.2; //1.0 for fully opaque, 0.0 for fully transparent 
+integer SHOW_COUNTDOWN = TRUE //Show floating text countdown
+vector COUNTDOWN_COLOR = <1.0, 1.0, 1.0>;
 
 /*Global Constants*/
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -88,10 +89,19 @@ state activated
         llSetAlpha(1.0, ALL_SIDES);          
         if(!ALWAYS_VISIBLE)
         {
+			if(SHOW_COUNTDOWN)
+			{
+				llSetText((string)ACTIVATION_TIME, COUNTDOWN_COLOR, 1.0); 
+			}		
             timerCounter = 1;
             llSetTimerEvent(1.0);
         }
     }
+	
+	state_exit()
+	{
+		llSetText("", COUNTDOWN_COLOR, 0.0); 	
+	}
     
     touch_end(integer num_detected)
     {
@@ -109,6 +119,7 @@ state activated
     {
         if(timerCounter != ACTIVATION_TIME)
         {
+			llSetText((string)(ACTIVATION_TIME - timerCounter), COUNTDOWN_COLOR, 1.0); 		
             timerCounter++;   
         }
         else
