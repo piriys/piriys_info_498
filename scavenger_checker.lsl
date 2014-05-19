@@ -1,7 +1,6 @@
 /*v### Scavenger Checker Settings - Make Changes Below ###v*/
 string PROMPT_TEXT = "Courtesy Token Award"; //Hover text
 string TOKEN_NAME = "Courtesy"; //VSD Value (Pick valid value from VSD_LIST below)
-string TRIGGER_ID = "Courtesy Token Checker"; //Object name - Make sure this matches with the trigger plate/button settings in scavenger_trigger_button.lsl or scavenger_trigger_plate.lsl, meaningful name preferred
 string AWARD_NAME = "Courtesy Award"; //Award name in this object inventory
 /*^### Scavenger Checker Settings - Make Changes Above ###^*/
 
