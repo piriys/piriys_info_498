@@ -1,6 +1,6 @@
-/*Object Settings - Make Changes Here*/
+/*Scavenger Object Settings - Make Changes Here*/
 string TOKEN_NAME = "Educational"; //VSD Value (Pick valid value from VSD_LIST below if this is not a decoy)
-string TRIGGER_ID = "Educational Token Dispenser"; //Object name - Make sure this matches with the trigger plate/button settings, meaningful name preferred
+string TRIGGER_ID = "Educational Token Dispenser"; //Object name - Make sure this matches with the trigger plate/button settings in scavenger_trigger_button.lsl or scavenger_trigger_plate.lsl, meaningful name preferred
 
 integer ALWAYS_VISIBLE = TRUE; //FALSE if there is another object that triggers this object to appear
 integer ACTIVATION_TIME = 30;  //Time until object disappears (seconds) after being activated (make sure ALWAYS_VISIBLE = FALSE and this matches with the object settings)
