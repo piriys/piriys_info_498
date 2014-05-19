@@ -8,6 +8,11 @@ integer ACTIVATION_TIME = 30;  //Time until object disappears (seconds) after be
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
+list VSD_LIST = 
+    ["Accountability", "Autonomy", "Calmness", "Courtesy",
+    "Educational", "Empirical", "Environmental Stability", "Freedom from Bias",
+    "Human Welfare", "Identity", "Informed Consent", "Ownership/Property",
+    "Trust", "Universal Usability", "Exceptional", "Privacy"];
     
 /*Index Constants for Incoming Parameters*/
 integer TIME_STAMP = 0;
