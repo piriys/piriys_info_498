@@ -1,18 +1,22 @@
-integer TRANSFORM_CUBE_CHANNEL = 9999;
+integer INTERNAL_DIALOG_CHANNEL = 9999;
+integer INTERNAL_TEXTBOX_CHANNEL = -9999;
+integer SYNC_CHANNEL = 9998;
 integer TOTAL_PRIM_COUNT = 28;
 float DEFAULT_DISTANCE = 0.5;
 float DEFAULT_EXPAND = 2.0;
-list DIALOG_OPTIONS = ["Save", "Load", "Reset", "Expand"];
+list DIALOG_OPTIONS = ["Save", "Load", "Reset", "Expand", "SyncID"];
 
 list savedPositionX = [];
 list savedPositionY = [];
 list savedPositionZ = [];
 
+string syncID = "PUBLIC";
 integer isDefaultDistance = TRUE;
 integer hasPositionSaved = FALSE;
 integer isLooping = FALSE;
-integer internalHandle;
-integer publicHandle;
+integer syncHandle;
+integer internalDialogHandle;
+integer internalTextboxHandle;
 integer loopNumber = 0; 
 
 float randomFloat(float min, float max)
@@ -141,11 +145,13 @@ default
         //ResetCube();
         llTargetOmega(llRot2Up(llGetLocalRot()), 0 * PI/16, 1.0);
         llSetTimerEvent(0.0);
+        syncID = "PUBLIC"; 
         
-        llListenRemove(internalHandle);
-        llListenRemove(publicHandle);
-        internalHandle = llListen(TRANSFORM_CUBE_CHANNEL, "", llGetOwner(), "");
-        publicHandle = llListen(PUBLIC_CHANNEL, "", "", "");        
+        llListenRemove(internalDialogHandle);
+        llListenRemove(internalTextboxHandle);  
+        llListenRemove(syncHandle);           
+        
+        syncHandle = llListen(SYNC_CHANNEL, "", "", "");   
     }
 
     touch_start(integer total_number)
@@ -158,12 +164,14 @@ default
         //llOwnerSay((string)localPosition);
         if(!isLooping)
         {
-            llDialog(llGetOwner(), "Select Command", DIALOG_OPTIONS + "Start Looping", TRANSFORM_CUBE_CHANNEL);
+            llDialog(llGetOwner(), "Select Command:", DIALOG_OPTIONS + "Start Looping", INTERNAL_DIALOG_CHANNEL);
         }
         else
         {
-            llDialog(llGetOwner(), "Select Command", DIALOG_OPTIONS + "Stop Looping", TRANSFORM_CUBE_CHANNEL);            
+            llDialog(llGetOwner(), "Select Command:", DIALOG_OPTIONS + "Stop Looping", INTERNAL_DIALOG_CHANNEL);            
         }
+        
+        internalDialogHandle = llListen(INTERNAL_DIALOG_CHANNEL, "", llGetOwner(), "");
     }
     
     timer()
@@ -186,67 +194,97 @@ default
     }
     
     listen( integer channel, string name, key id, string message )
-    {         
-        if(channel != PUBLIC_CHANNEL)
-        { 
+    {   
+		//llOwnerSay("SyncID: " + syncID + "\nChannel " + (string)channel + ": " + message);
+		
+        if(channel == INTERNAL_DIALOG_CHANNEL)
+        {
             if(message == "Save")
             {
-                SaveCube();
+				SaveCube();
+                llSay(SYNC_CHANNEL, syncID + ",Save");
             }
+            else if(message == "Load")
+            {
+				LoadCube();
+                llSay(SYNC_CHANNEL, syncID + ",Load");  
+            }                
             else if(message == "Reset")
             {
-                ResetCube();   
+				ResetCube();
+                llSay(SYNC_CHANNEL, syncID + ",Reset");  
             }
             else if(message == "Expand")
             {
-                ExpandCube(DEFAULT_EXPAND);   
+                ExpandCube(DEFAULT_EXPAND);  
+                llSay(SYNC_CHANNEL, syncID + ",Expand");    
             }
             else if(message == "Start Looping")
             {
-                isLooping = TRUE;
-                llSetTimerEvent(1.5);
+				isLooping = TRUE;
+				llSetTimerEvent(1.5); 			
+                llSay(SYNC_CHANNEL, syncID + ",Start Looping");   
             }
             else if(message == "Stop Looping")
             {
-                isLooping = FALSE;   
-                loopNumber = 0;         
-                llSetTimerEvent(0.0);
-                ResetCube();
+				isLooping = FALSE;   
+				loopNumber = 0;         
+				llSetTimerEvent(0.0);
+				ResetCube();     			
+                llSay(SYNC_CHANNEL, syncID + ",Stop Looping");   
             }        
-            else if(message == "Load")
+            else if(message == "SyncID")
             {
-                LoadCube();          
-            }   
-        } 
-        else
-        {
-            if(message == "reset")
-            {
-                ResetCube();   
-            }            
-            else if(message == "load")
-            {
-                LoadCube();          
+                llTextBox(llGetOwner(), "SyncID: " + syncID, INTERNAL_TEXTBOX_CHANNEL);
+                internalTextboxHandle = llListen(INTERNAL_TEXTBOX_CHANNEL, "", "", "");                  
             }
-            else if(message == "break")
+			llListenRemove(internalDialogHandle);			
+        }
+        else if(channel == INTERNAL_TEXTBOX_CHANNEL)
+        {
+			if(syncID != "")
+			{
+				syncID = message;
+				llListenRemove(internalTextboxHandle);
+			}
+        }
+        else if(channel == SYNC_CHANNEL)
+        {
+            list parameters = llParseString2List(message, [","], []);
+            
+            if(llList2String(parameters, 0) == syncID)
             {
-                ExpandCube(DEFAULT_EXPAND);   
-            }   
-            else if(message == "loop")
-            {
-                if(!isLooping)
+                string command = llList2String(parameters, 1);
+                
+                if(command == "Save")
+                {
+                    SaveCube();                
+                }            
+                else if(command == "Load")
+                {
+                    LoadCube();                
+                }
+                else if(command == "Reset")
+                {
+                    ResetCube();   
+                }                
+                else if(command == "Expand")
+                {
+                    ExpandCube(DEFAULT_EXPAND);   
+                }                                
+                else if(command == "Start Looping")
                 {
                     isLooping = TRUE;
-                    llSetTimerEvent(3.0);
-                }
-                else
+                    llSetTimerEvent(1.5);                
+                }    
+                else if(command == "Stop Looping")
                 {
                     isLooping = FALSE;   
                     loopNumber = 0;         
                     llSetTimerEvent(0.0);
-                    ResetCube();                    
+                    ResetCube();                
                 }
-            }                                  
-        } 
+            }            
+        }
     }    
 }
