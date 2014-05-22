@@ -1,3 +1,6 @@
+//Settings
+/*Coming Soon*/
+
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
@@ -28,6 +31,12 @@ list BGM_LIST = [
 "AMBLER",
 "MOVE_FORWARD",
 "HAROLD_VAR3"
+];
+
+list BGM_DISPLAY = [
+"\"Ambler\"\nComposer: Kevin MacLeod",
+"\"Move Forward\"\nComposer: Kevin MacLeod",
+"\"Theme of Harold (var. 3)\"\nComposer: Kevin MacLeod"
 ];
 
 list BGM_LENGTH = [
@@ -85,13 +94,15 @@ integer PARAMETER = 3;
 //Global Variables
 integer listenHandle = 0;
 list tokenList = [];
+//Deactivate State Variables
 integer timerCounter = 1;
-
+//BGM Variables
 string currentBGM = "";
+string currentBGMdisplay = "";
 list currentBGMclipList = [];
 float currentBGMlength = 0.0;
 integer currentBGMclipIndex = 0;
-integer currentBGMclipCount = -1;
+integer currentBGMclipCount = 0;
 integer playBGM = TRUE;
 
 //Encode & Decode Functions (for security)
@@ -111,13 +122,14 @@ ChangeBGM(string bgm)
     integer bgmIndex = llListFindList(BGM_LIST, [bgm]);
     
     if(bgmIndex != -1)
-    {
-        if(currentBGM != bgm)
+    {   
+        if(currentBGM != bgm | currentBGMclipIndex == -1)
         {
             llStopSound();
             llSetTimerEvent(0.0);
                        
             currentBGM = bgm;
+            currentBGMdisplay = llList2String(BGM_DISPLAY, bgmIndex);
             currentBGMclipIndex = 0;
             currentBGMlength = llList2Integer(BGM_LENGTH, bgmIndex);
             
@@ -126,25 +138,24 @@ ChangeBGM(string bgm)
             
             currentBGMclipList = llList2List(BGM_CLIP_KEYS, bgmStartIndex, bgmStartIndex + clipCount);  
             currentBGMclipCount = llGetListLength(currentBGMclipList);
-              
+            
             key firstBGMclipKey = llList2Key(currentBGMclipList, currentBGMclipIndex);
             
-            if(currentBGMlength <= 10.0 | clipCount == 1)
-            {
-                llLoopSound(firstBGMclipKey, (float)playBGM);
-            }
-            else
-            {
                 currentBGMclipList = llList2List(BGM_CLIP_KEYS, bgmStartIndex, bgmStartIndex + clipCount);
                 
-                string bgmCC = llList2String(BGM_CC, bgmIndex);
-                llOwnerSay("Current BGM: " + bgmCC);
-                //llOwnerSay(llDumpList2String(currentBGMclipList, ","));
-                
-                llSetSoundQueueing(TRUE);
-                llPlaySound(firstBGMclipKey, (float)playBGM);
-                llSetTimerEvent(10.0);
+            string bgmCC = llList2String(BGM_CC, bgmIndex);
+            llOwnerSay("Current BGM: " + bgmCC);
+            //llOwnerSay(llDumpList2String(currentBGMclipList, ","));     
+            
+            if(playBGM)
+            {                 
+                llSetSoundQueueing(FALSE);
+                llPlaySound(firstBGMclipKey, 1.0);
+                llSetTimerEvent(10.0);    
             }
+            
+                     
+            RefreshBGMcontrol();
         }
     }
 }
@@ -158,16 +169,22 @@ ResetHUD()
 
 RefreshBGMcontrol()
 {
-    if(playBGM)
+    string bgmPrompt = "[Turn Off BGM]";
+    
+    if(!playBGM)
     {
-        llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
-                PRIM_TEXT, "[Turn Off BGM]", <1.0, 1.0, 1.0>, 1.0]);                       
+        bgmPrompt = "[Turn On BGM]";      
     }     
-    else
+
+    string bgmDisplay = "No BGM Currently Playing";
+    
+    if(currentBGM != "")
     {
-        llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
-                PRIM_TEXT, "[Turn On BGM]", <1.0, 1.0, 1.0>, 1.0]);              
-    }    
+        bgmDisplay = currentBGMdisplay;
+    }
+    
+    llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
+        PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, 1.0]);               
 }
 
 RefreshHUD()
@@ -193,7 +210,7 @@ RefreshHUD()
         string latestTokenName = llList2String(tokenList, count - 1);
         integer latestVsdIndex = llListFindList(VSD_LIST, [latestTokenName]);
         
-        changeVsdTexture(latestVsdIndex, LATEST_TOKEN_DISPLAY_LINK_NUMBER);
+        ChangeVsdTexture(latestVsdIndex, LATEST_TOKEN_DISPLAY_LINK_NUMBER);
         llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
             PRIM_TEXT, "Latest Token:", <1.0, 1.0, 1.0>, 1.0]);
             
@@ -204,7 +221,7 @@ RefreshHUD()
             
             if(vsdIndex != -1)
             {
-                changeVsdTexture(vsdIndex, vsdIndex + 2);
+                ChangeVsdTexture(vsdIndex, vsdIndex + 2);
             }
         }
         
@@ -218,7 +235,7 @@ RefreshHUD()
     }
 }
 
-changeVsdTexture(integer vsdIndex, integer linkNumber)
+ChangeVsdTexture(integer vsdIndex, integer linkNumber)
 {
     integer column = (vsdIndex %  4);
     integer row = (vsdIndex / 4);
@@ -240,7 +257,7 @@ integer AddToken(string name)
         {
             tokenList += name; 
             llOwnerSay("You obtained " + name + " token.");
-            llPlaySound(SOUND_OBTAIN, 1.0);
+            llTriggerSound(SOUND_OBTAIN, 1.0);
             //llSay(DEBUG_CHANNEL, llGetDisplayName(llGetOwner()) + " obtained " + name + " token.");
             RefreshHUD();
         }
@@ -317,7 +334,7 @@ default
         /*llOwnerSay((string)(currentBGMclipIndex + 1) +
         "/" + (string)currentBGMclipCount +
         "\nPlaying: " + llList2String(currentBGMclipList, currentBGMclipIndex));*/
-        llPlaySound(llList2Key(currentBGMclipList, currentBGMclipIndex), (float)playBGM);
+        llPlaySound(llList2Key(currentBGMclipList, currentBGMclipIndex), 1.0);
         
         if(currentBGMclipIndex == currentBGMclipCount - 2)
         {
@@ -363,19 +380,20 @@ default
             llResetScript();
         }
         else if(linkNumber == BGM_CONTROL_LINK_NUMBER)
-        {
+        {            
             playBGM = !playBGM;
             RefreshBGMcontrol();
-            
+            llSetTimerEvent(0.0);  
+            llStopSound();    
+                
             if(!playBGM)
             {
-                llOwnerSay("BGM: off");                  
-                llSetTimerEvent(0.0);                
-                llStopSound();
+                currentBGMclipIndex = -1;
+                llOwnerSay("BGM: off" /*"Volume: " + (string)((float)playBGM)*/);         
             }
             else
             {
-                llOwnerSay("BGM: on");                
+                llOwnerSay("BGM: on" /*"Volume: " + (string)((float)playBGM)*/);       
                 ChangeBGM(currentBGM);   
             }
         }
@@ -430,7 +448,14 @@ default
                 }
                 else if(command == "CHANGE_BGM")
                 {
+                    integer tempCurrentBGMclipIndex = currentBGMclipIndex;  
+                    
                     ChangeBGM(parameter);
+                    
+                    if(tempCurrentBGMclipIndex == -1)
+                    {
+                        currentBGMclipIndex = tempCurrentBGMclipIndex;
+                    }
                 }
             }
         }
@@ -443,7 +468,7 @@ state deactivated
     {
         timerCounter = 1;
         llSetText("HUD Deactivated\nPlease Wait for\n5 seconds.", <1.0,0.0,0.0>, 1.0);
-        llPlaySound(SOUND_DEACTIVATED, 1.0);
+        llTriggerSound(SOUND_DEACTIVATED, 1.0);
         llSetTimerEvent(1.0);   
     }
     
