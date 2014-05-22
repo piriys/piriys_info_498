@@ -131,9 +131,9 @@ ChangeBGM(string bgm)
             currentBGM = bgm;
             currentBGMdisplay = llList2String(BGM_DISPLAY, bgmIndex);
             currentBGMclipIndex = 0;
-            currentBGMlength = llList2Integer(BGM_LENGTH, bgmIndex);
+            currentBGMlength = llList2Float(BGM_LENGTH, bgmIndex);
             
-            integer clipCount = llCeil(currentBGMlength);
+            integer clipCount = llCeil(currentBGMlength/10.0);
             integer bgmStartIndex = llList2Integer(BGM_CLIP_START_INDEX, bgmIndex);   
             
             currentBGMclipList = llList2List(BGM_CLIP_KEYS, bgmStartIndex, bgmStartIndex + clipCount);  
@@ -141,11 +141,11 @@ ChangeBGM(string bgm)
             
             key firstBGMclipKey = llList2Key(currentBGMclipList, currentBGMclipIndex);
             
-                currentBGMclipList = llList2List(BGM_CLIP_KEYS, bgmStartIndex, bgmStartIndex + clipCount);
+            currentBGMclipList = llList2List(BGM_CLIP_KEYS, bgmStartIndex, bgmStartIndex + clipCount - 1);
                 
             string bgmCC = llList2String(BGM_CC, bgmIndex);
             llOwnerSay("Current BGM: " + bgmCC);
-            //llOwnerSay(llDumpList2String(currentBGMclipList, ","));     
+            //llOwnerSay("Final Index: " + (string)(bgmStartIndex + clipCount) + "\nCount: " + (string)llGetListLength(currentBGMclipList));     
             
             if(playBGM)
             {                 
@@ -153,7 +153,6 @@ ChangeBGM(string bgm)
                 llPlaySound(firstBGMclipKey, 1.0);
                 llSetTimerEvent(10.0);    
             }
-            
                      
             RefreshBGMcontrol();
         }
