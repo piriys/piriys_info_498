@@ -30,21 +30,23 @@ key VSD_TEXTURE = "cd582a07-ce99-6282-3de0-8678d7d732b6";
 list BGM_LIST = [
 "AMBLER",
 "MOVE_FORWARD",
-"HAROLD_VAR3"
+"HAROLD_VAR3",
+"GUITON_SKETCH"
 ];
 
 list BGM_DISPLAY = [
 "\"Ambler\"\nComposer: Kevin MacLeod",
 "\"Move Forward\"\nComposer: Kevin MacLeod",
-"\"Theme of Harold (var. 3)\"\nComposer: Kevin MacLeod"
+"\"Theme of Harold (var. 3)\"\nComposer: Kevin MacLeod",
+"\"Guiton Sketch\"\nComposer: Kevin MacLeod"
 ];
 
 list BGM_LENGTH = [
-46.0, 69.0, 76.0
+46.0, 69.0, 76.0, 34.0
 ];
 
 list BGM_CLIP_START_INDEX = [
-0, 5, 12
+0, 5, 12, 20
 ];
 
 list BGM_CC = [
@@ -55,6 +57,9 @@ http://creativecommons.org/licenses/by/3.0/",
 Licensed under Creative Commons: By Attribution 3.0
 http://creativecommons.org/licenses/by/3.0/",
 "\"Theme for Harold (var. 3)\" Kevin MacLeod (incompetech.com) 
+Licensed under Creative Commons: By Attribution 3.0
+http://creativecommons.org/licenses/by/3.0/",
+"\"Guiton Sketch\" Kevin MacLeod (incompetech.com) 
 Licensed under Creative Commons: By Attribution 3.0
 http://creativecommons.org/licenses/by/3.0/"
 ];
@@ -82,7 +87,12 @@ list BGM_CLIP_KEYS = [
 "9396cfe6-1378-5fed-630f-c10fd1363b59",
 "634ff332-9b97-e366-dd4b-6d084b199728",
 "2fe11edd-c98c-b017-7b65-7187f658a690",
-"bc1d20f8-f907-f7a0-7fb6-b6d67e38608d"
+"bc1d20f8-f907-f7a0-7fb6-b6d67e38608d",
+//GUITON SKETCH
+"42207803-e487-d764-ff43-582a92ee6520", //20
+"1c477f96-6456-d57f-9bc0-1f9fc2f00d2b",
+"be8013fc-ea8b-102a-97cb-e08bc92dbaca",
+"92e1cd1e-0958-e5ff-bbaf-49d0a5dffb2c"
 ];
 
 //Index Constants for Incoming Parameters
