@@ -7,14 +7,19 @@ integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
 integer HUD_FRONT_FACE = 1;
 string VSD_SIM_NAME = "UW iSchool";
+vector VSD_DEFAULT_LOCATION = <224, 230, 21>; 
 list VSD_LIST = 
     ["Accountability", "Autonomy", "Calmness", "Courtesy",
     "Educational", "Empirical", "Environmental Stability", "Freedom from Bias",
     "Human Welfare", "Identity", "Informed Consent", "Ownership/Property",
     "Trust", "Universal Usability", "Exceptional", "Privacy"];
 list VSD_LOCATION = 
-    [];
-vector VSD_DEFAULT_LOCATION = <224, 230, 21>; 
+    [<74,239,21>, <18,242,22>, <128,16,22>, <78,150,21>,
+    VSD_DEFAULT_LOCATION, VSD_DEFAULT_LOCATION, <100,71,22>, <224,132,21>,
+    <192,172,21>, <248,18,21>, <201,21,21>, <95,158,22>,
+    <149,103,21>, VSD_DEFAULT_LOCATION, VSD_DEFAULT_LOCATION, <246,77,22>
+    ];
+
 integer LAST_VSD_LINK_NUMBER = 17;
 integer RESET_BUTTON_LINK_NUMBER = 18;
 integer LATEST_TOKEN_DISPLAY_LINK_NUMBER = 19;
@@ -70,7 +75,7 @@ list BGM_CLIP_KEYS = [
 "7b338157-17b0-798c-88f9-233fd54b6149", 
 "8265bff1-6f56-a349-b944-9b12c9e4b201",
 "3ea4f119-38da-7092-f3ef-f297ef45e8ba",
-"8166eddc-d864-d90a-9a38-98f6e97989ae",
+"8166eddc-d864-d90a-9a38-98f6e97989ae", //4
 //MOVE_FORWARD
 "114ca2ff-ab30-b885-d256-679b92072b90", //5
 "2dbca65f-962b-b490-c236-509abcb4cc67",
@@ -78,7 +83,7 @@ list BGM_CLIP_KEYS = [
 "29c9f9b5-6561-1be1-e768-3a2927196730",
 "d45d4979-7956-aa0a-65f9-dcfb419f8539",
 "f438d032-9742-460e-36fe-6ee659a5a758",
-"ce00c41b-86b3-bbd3-a8ac-0130ccf5c634",
+"ce00c41b-86b3-bbd3-a8ac-0130ccf5c634", //11
 //THEME FOR HAROLD V3
 "5a52d162-a364-7ea9-2463-81e79c41f724", //12
 "e9511a0e-f195-9439-0ffa-772022304470",
@@ -87,12 +92,12 @@ list BGM_CLIP_KEYS = [
 "9396cfe6-1378-5fed-630f-c10fd1363b59",
 "634ff332-9b97-e366-dd4b-6d084b199728",
 "2fe11edd-c98c-b017-7b65-7187f658a690",
-"bc1d20f8-f907-f7a0-7fb6-b6d67e38608d",
+"bc1d20f8-f907-f7a0-7fb6-b6d67e38608d", //19
 //GUITON SKETCH
 "42207803-e487-d764-ff43-582a92ee6520", //20
 "1c477f96-6456-d57f-9bc0-1f9fc2f00d2b",
 "be8013fc-ea8b-102a-97cb-e08bc92dbaca",
-"92e1cd1e-0958-e5ff-bbaf-49d0a5dffb2c"
+"92e1cd1e-0958-e5ff-bbaf-49d0a5dffb2c" //23
 ];
 
 //Index Constants for Incoming Parameters
@@ -132,7 +137,7 @@ ChangeBGM(string bgm)
     integer bgmIndex = llListFindList(BGM_LIST, [bgm]);
     
     if(bgmIndex != -1)
-    {   
+    {  
         if(currentBGM != bgm | currentBGMclipIndex == -1)
         {
             llStopSound();
@@ -140,25 +145,26 @@ ChangeBGM(string bgm)
                        
             currentBGM = bgm;
             currentBGMdisplay = llList2String(BGM_DISPLAY, bgmIndex);
-            currentBGMclipIndex = 0;
             currentBGMlength = llList2Float(BGM_LENGTH, bgmIndex);
             
             integer clipCount = llCeil(currentBGMlength/10.0);
             integer bgmStartIndex = llList2Integer(BGM_CLIP_START_INDEX, bgmIndex);   
-            
-            currentBGMclipList = llList2List(BGM_CLIP_KEYS, bgmStartIndex, bgmStartIndex + clipCount);  
-            currentBGMclipCount = llGetListLength(currentBGMclipList);
-            
-            key firstBGMclipKey = llList2Key(currentBGMclipList, currentBGMclipIndex);
-            
+         
             currentBGMclipList = llList2List(BGM_CLIP_KEYS, bgmStartIndex, bgmStartIndex + clipCount - 1);
-                
-            string bgmCC = llList2String(BGM_CC, bgmIndex);
-            llOwnerSay("Current BGM: " + bgmCC);
-            //llOwnerSay("Final Index: " + (string)(bgmStartIndex + clipCount) + "\nCount: " + (string)llGetListLength(currentBGMclipList));     
-            
+			currentBGMclipCount = llGetListLength(currentBGMclipList);
+            key firstBGMclipKey = llList2Key(currentBGMclipList, 0);
+
+            //llOwnerSay("Final Index: " + (string)(bgmStartIndex + clipCount - 1) + "\nCount: " + (string)llGetListLength(currentBGMclipList));     
+            //llOwnerSay(llDumpList2String(currentBGMclipList, "\n"));
+			
             if(playBGM)
-            {                 
+            {  
+				llOwnerSay("BGM: on"); 
+				
+				string bgmCC = llList2String(BGM_CC, bgmIndex);	
+				llOwnerSay("Current BGM: " + bgmCC);
+				
+				currentBGMclipIndex = 0;            
                 llSetSoundQueueing(FALSE);
                 llPlaySound(firstBGMclipKey, 1.0);
                 llSetTimerEvent(10.0);    
@@ -167,6 +173,16 @@ ChangeBGM(string bgm)
             RefreshBGMcontrol();
         }
     }
+}
+
+StopBGM()
+{
+	llOwnerSay("BGM: off");          
+	playBGM = !playBGM;
+	currentBGMclipIndex = -1;			
+	RefreshBGMcontrol();			
+	llSetTimerEvent(0.0);  
+	llStopSound();
 }
 
 ResetHUD()
@@ -335,14 +351,15 @@ default
     {
         currentBGMclipIndex++;
         
-        if(currentBGMclipIndex >= currentBGMclipCount)
+        //llOwnerSay("Current: " + (string)currentBGMclipIndex);
+        if(currentBGMclipIndex == currentBGMclipCount - 1)
         {
             currentBGMclipIndex = 0;
         }
         
-        /*llOwnerSay((string)(currentBGMclipIndex + 1) +
-        "/" + (string)currentBGMclipCount +
-        "\nPlaying: " + llList2String(currentBGMclipList, currentBGMclipIndex));*/
+        //llOwnerSay((string)(currentBGMclipIndex + 1) +
+        //"/" + (string)currentBGMclipCount +
+        //"\nPlaying: " + llList2String(currentBGMclipList, currentBGMclipIndex));
         llPlaySound(llList2Key(currentBGMclipList, currentBGMclipIndex), 1.0);
         
         if(currentBGMclipIndex == currentBGMclipCount - 2)
@@ -389,20 +406,13 @@ default
             llResetScript();
         }
         else if(linkNumber == BGM_CONTROL_LINK_NUMBER)
-        {            
-            playBGM = !playBGM;
-            RefreshBGMcontrol();
-            llSetTimerEvent(0.0);  
-            llStopSound();    
-                
-            if(!playBGM)
+        {    
+            if(playBGM)
             {
-                currentBGMclipIndex = -1;
-                llOwnerSay("BGM: off" /*"Volume: " + (string)((float)playBGM)*/);         
+				StopBGM();
             }
             else
             {
-                llOwnerSay("BGM: on" /*"Volume: " + (string)((float)playBGM)*/);       
                 ChangeBGM(currentBGM);   
             }
         }
