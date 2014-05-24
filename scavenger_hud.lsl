@@ -1,5 +1,6 @@
 //Settings
-integer PING_TIME = 5;
+integer PING_TIME = 10;
+float MINIMUM_PING_INTERVAL = 0.5;
 
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -449,7 +450,7 @@ default
         
         if(linkNumber > 1 & linkNumber < LAST_VSD_LINK_NUMBER & !hideHUD)
         {
-            integer vsdNumber = linkNumber - 1;
+            integer vsdNumber = linkNumber - 2;
             vector vsdDestination = llList2Vector(VSD_LOCATION, vsdNumber);
             
             if(vsdDestination == ZERO_VECTOR)
@@ -663,9 +664,16 @@ state play_ping
         if(distanceFromObject < 20.0)
         {
             float pingInterval = distanceFromObject / 10.0;
+            
+            if(pingInterval < MINIMUM_PING_INTERVAL)
+            {
+                pingInterval = MINIMUM_PING_INTERVAL;
+            }
+            
             pingCount = llCeil((float)PING_TIME / pingInterval);
             timerCounter = 1;  
-            llOwnerSay("Object found! Distance to object: " + (string)llCeil(distanceFromObject) + " m");            
+            llOwnerSay("Object found! Distance to closest object: " + (string)llCeil(distanceFromObject) + " m");    
+
             llSetTimerEvent(pingInterval);
         }
         else
