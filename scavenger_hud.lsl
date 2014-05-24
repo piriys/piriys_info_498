@@ -41,22 +41,24 @@ list BGM_LIST = [
 "AMBLER",
 "MOVE_FORWARD",
 "HAROLD_VAR3",
-"GUITON_SKETCH"
+"GUITON_SKETCH",
+"KICK_SHOCK"
 ];
 
 list BGM_DISPLAY = [
 "\"Ambler\"\nComposer: Kevin MacLeod",
 "\"Move Forward\"\nComposer: Kevin MacLeod",
 "\"Theme of Harold (var. 3)\"\nComposer: Kevin MacLeod",
-"\"Guiton Sketch\"\nComposer: Kevin MacLeod"
+"\"Guiton Sketch\"\nComposer: Kevin MacLeod",
+"\"Kick Shock\"\nComposer: Kevin MacLeod"
 ];
 
 list BGM_LENGTH = [
-46.0, 69.0, 76.0, 34.0
+46.0, 69.0, 76.0, 34.0, 63.0
 ];
 
 list BGM_CLIP_START_INDEX = [
-0, 5, 12, 20
+0, 5, 12, 20, 24
 ];
 
 list BGM_CC = [
@@ -70,6 +72,9 @@ http://creativecommons.org/licenses/by/3.0/",
 Licensed under Creative Commons: By Attribution 3.0
 http://creativecommons.org/licenses/by/3.0/",
 "\"Guiton Sketch\" Kevin MacLeod (incompetech.com) 
+Licensed under Creative Commons: By Attribution 3.0
+http://creativecommons.org/licenses/by/3.0/",
+"\"Kick Shock\" Kevin MacLeod (incompetech.com) 
 Licensed under Creative Commons: By Attribution 3.0
 http://creativecommons.org/licenses/by/3.0/"
 ];
@@ -102,7 +107,15 @@ list BGM_CLIP_KEYS = [
 "42207803-e487-d764-ff43-582a92ee6520", //20
 "1c477f96-6456-d57f-9bc0-1f9fc2f00d2b",
 "be8013fc-ea8b-102a-97cb-e08bc92dbaca",
-"92e1cd1e-0958-e5ff-bbaf-49d0a5dffb2c" //23
+"92e1cd1e-0958-e5ff-bbaf-49d0a5dffb2c", //23
+//KICK SHOCK
+"685657af-ef14-0a77-0666-a26b143641a0",    //24
+"63fed441-a1fa-48ab-0cf9-cfaff7149201",
+"a5e9c561-b60f-14f8-ef2f-de789dd7617c",
+"6715b916-a245-25f5-751d-9e53c930e981",
+"82ac3355-459f-7d6d-a9e0-b393b10a802a",
+"fe5372cd-aa12-a631-fe64-26aace5410cd",
+"aab2316d-a474-fc8e-b70b-98dc9138e862"    //30
 ];
 
 //Index Constants for Incoming Parameters
