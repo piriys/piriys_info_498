@@ -1,5 +1,5 @@
 //Settings
-/*Coming Soon*/
+integer PING_TIME = 10;
 
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -20,16 +20,19 @@ list VSD_LOCATION =
     <149,103,21>, VSD_DEFAULT_LOCATION, VSD_DEFAULT_LOCATION, <246,77,22>
     ];
 
+//Link Numbers    
 integer LAST_VSD_LINK_NUMBER = 17;
 integer RESET_BUTTON_LINK_NUMBER = 18;
 integer LATEST_TOKEN_DISPLAY_LINK_NUMBER = 19;
 integer VSD_GROUP_BACKGROUND_LINK_NUMBER = 20;
 integer BGM_CONTROL_LINK_NUMBER = 21;
 integer VISIBILITY_CONTROL_LINK_NUMBER = 22;
+integer PING_LINK_NUMBER = 23;
 
 //Texture and UI Sound UUIDs
 key SOUND_OBTAIN = "93c7acbd-8201-85c4-e50d-2567507297c1";
 key SOUND_DEACTIVATED = "a692d9f3-e328-7877-6c2e-18a55c87994e";
+key SOUND_PING = "c74e854f-7ab8-e27b-359b-2052be1c2dfb";
 key VSD_TEXTURE = "cd582a07-ce99-6282-3de0-8678d7d732b6";
 
 //BGM UUIDs
@@ -120,7 +123,10 @@ float currentBGMlength = 0.0;
 integer currentBGMclipIndex = 0;
 integer currentBGMclipCount = 0;
 integer playBGM = TRUE;
-//Visibility
+//Ping Variables
+float distanceFromObject = 5.0;
+integer pingCount = PING_TIME;
+//Visibility Variables
 integer hideHUD = FALSE;
 
 //Encode & Decode Functions (for security)
@@ -137,11 +143,12 @@ string Dexor(string data)
 //HUD Functions
 PlayBGM()
 {
-	if(currentBGM != "")
-	{
-		playBGM = TRUE;
-		ChangeBGM(currentBGM);
-	}
+    llOwnerSay("BGM: on"); 
+    
+    //llOwnerSay("Starting BGM...");        
+    currentBGMclipIndex = -1;    
+    playBGM = TRUE;
+    ChangeBGM(currentBGM);
 }
 
 ChangeBGM(string bgm)
@@ -149,7 +156,8 @@ ChangeBGM(string bgm)
     integer bgmIndex = llListFindList(BGM_LIST, [bgm]);
     
     if(bgmIndex != -1)
-    {  
+    { 
+        //llOwnerSay("Current BGM: " + bgm);
         if(currentBGM != bgm | currentBGMclipIndex == -1)
         {
             llStopSound();
@@ -170,9 +178,7 @@ ChangeBGM(string bgm)
             //llOwnerSay(llDumpList2String(currentBGMclipList, "\n"));
             
             if(playBGM)
-            {  
-                llOwnerSay("BGM: on"); 
-                
+            {   
                 string bgmCC = llList2String(BGM_CC, bgmIndex);    
                 llOwnerSay("Current BGM: " + bgmCC);
                 
@@ -181,15 +187,15 @@ ChangeBGM(string bgm)
                 llPlaySound(firstBGMclipKey, 1.0);
                 llSetTimerEvent(10.0);    
             }
-                     
-            RefreshBGMcontrol();
-        }
+        }    
     }
+    
+    RefreshBGMcontrol();    
 }
 
 StopBGM()
 {
-	playBGM = FALSE;
+    playBGM = FALSE;
     llOwnerSay("BGM: off");          
     currentBGMclipIndex = -1;            
     RefreshBGMcontrol();            
@@ -206,25 +212,25 @@ ResetHUD()
 
 RefreshBGMcontrol()
 {
-	if(!hideHUD)
-	{
-		string bgmPrompt = "[Turn Off BGM]";
-		
-		if(!playBGM)
-		{
-			bgmPrompt = "[Turn On BGM]";      
-		}     
+    if(!hideHUD)
+    {
+        string bgmPrompt = "[Turn Off BGM]";
+        
+        if(!playBGM)
+        {
+            bgmPrompt = "[Turn On BGM]";      
+        }     
 
-		string bgmDisplay = "No BGM Currently Playing";
-		
-		if(currentBGM != "")
-		{
-			bgmDisplay = currentBGMdisplay;
-		}
-		
-		llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
-			PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, 1.0]);          
-	}		
+        string bgmDisplay = "No BGM Currently Playing";
+        
+        if(currentBGM != "")
+        {
+            bgmDisplay = currentBGMdisplay;
+        }
+        
+        llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
+            PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, 1.0]);          
+    }        
 }
 
 RefreshHUD()
@@ -234,56 +240,60 @@ RefreshHUD()
         PRIM_TEXTURE, HUD_FRONT_FACE, TEXTURE_BLANK, <0.0, 0.0, 0.0>, <0.0, 0.0, 0.0>, 0,
         PRIM_TEXT, "", <1.0, 1.0, 1.0>, 0.0]); 
 
-	integer count = llGetListLength(tokenList);		
-	string rootText = "No Token Obtained";
-	string latestTokenText = "No Latest Token";
-	string visibilityText = "[Show HUD]";
-	
-	if(count != 0)
-	{
-		string latestTokenName = llList2String(tokenList, count - 1);
-		integer latestVsdIndex = llListFindList(VSD_LIST, [latestTokenName]);
-		rootText = "Current Token" + " (" + (string)llGetListLength(tokenList) + "/16):\n" + llDumpList2String(tokenList, "\n");
-		latestTokenText = "Latest Token:\n" + latestTokenName;
-		
-		ChangeVsdTexture(latestVsdIndex, LATEST_TOKEN_DISPLAY_LINK_NUMBER);
-			
-		integer index = 0;	
-		for(index = 0; index < count; index++)
-		{
-			string tokenName = llList2String(tokenList, index);
-			integer vsdIndex = llListFindList(VSD_LIST, [tokenName]);
-			
-			if(vsdIndex != -1)
-			{
-				ChangeVsdTexture(vsdIndex, vsdIndex + 2);
-			}
-		}			
-	}
-	
-	if(hideHUD)
-	{
-		visibilityText = "[Hide HUD]";
-	}
-	
-	llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
-		PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD)]);	
-	
-	llSetLinkPrimitiveParamsFast(RESET_BUTTON_LINK_NUMBER, [
-		PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);
+    integer count = llGetListLength(tokenList);        
+    string rootText = "No Token Obtained";
+    string latestTokenText = "No Latest Token";
+    string visibilityText = "[Show HUD]";
+    
+    if(count != 0)
+    {
+        string latestTokenName = llList2String(tokenList, count - 1);
+        integer latestVsdIndex = llListFindList(VSD_LIST, [latestTokenName]);
+        rootText = "Current Token" + " (" + (string)llGetListLength(tokenList) + "/16):\n" + llDumpList2String(tokenList, "\n");
+        latestTokenText = "Latest Token:\n" + latestTokenName;
+        
+        ChangeVsdTexture(latestVsdIndex, LATEST_TOKEN_DISPLAY_LINK_NUMBER);
+            
+        integer index = 0;    
+        for(index = 0; index < count; index++)
+        {
+            string tokenName = llList2String(tokenList, index);
+            integer vsdIndex = llListFindList(VSD_LIST, [tokenName]);
+            
+            if(vsdIndex != -1)
+            {
+                ChangeVsdTexture(vsdIndex, vsdIndex + 2);
+            }
+        }            
+    }
+    
+    if(!hideHUD)
+    {
+        visibilityText = "[Hide HUD]";
+    }
+    
+    llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
+        PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD)]);    
+    
+    llSetLinkPrimitiveParamsFast(RESET_BUTTON_LINK_NUMBER, [
+        PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);
 
-	llSetLinkPrimitiveParamsFast(VISIBILITY_CONTROL_LINK_NUMBER, [
-		PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
-		PRIM_TEXT, visibilityText, <1.0, 1.0, 1.0>, 1.0]);	'
+    llSetLinkPrimitiveParamsFast(VISIBILITY_CONTROL_LINK_NUMBER, [
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
+        PRIM_TEXT, visibilityText, <1.0, 1.0, 1.0>, 1.0]);    '
 
-	llSetLinkPrimitiveParamsFast(LINK_ROOT, [
-		PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
-		PRIM_TEXT, rootText, <1.0,1.0,1.0>, 1.0]);		
+    llSetLinkPrimitiveParamsFast(LINK_ROOT, [
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
+        PRIM_TEXT, rootText, <1.0,1.0,1.0>, 1.0]);        
 
-	llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
-		PRIM_TEXT, "[Teleport to VSD Hubs]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);		
-	
-	RefreshBGMcontrol();
+    llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
+        PRIM_TEXT, "[Teleport to VSD Hubs]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
+
+    llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,    
+        PRIM_TEXT, "[Activate Ping]", <1.0, 1.0, 1.0>, 1.0]);            
+    
+    RefreshBGMcontrol();
 }
 
 ChangeVsdTexture(integer vsdIndex, integer linkNumber)
@@ -372,7 +382,12 @@ ReturnTokenCheck(string name)
 }
 
 default
-{    
+{   
+    on_rez(integer start_param)
+    {
+        llOwnerSay("Used Memory: " + (string)llGetUsedMemory() + "\nFree Memory: " +  (string)llGetFreeMemory());        
+    } 
+    
     timer()
     {
         currentBGMclipIndex++;
@@ -383,9 +398,7 @@ default
             currentBGMclipIndex = 0;
         }
         
-        //llOwnerSay((string)(currentBGMclipIndex + 1) +
-        //"/" + (string)currentBGMclipCount +
-        //"\nPlaying: " + llList2String(currentBGMclipList, currentBGMclipIndex));
+        //llOwnerSay((string)(currentBGMclipIndex + 1) + "/" + (string)currentBGMclipCount  + "\nPlaying: " + llList2String(currentBGMclipList, currentBGMclipIndex));
         llPlaySound(llList2Key(currentBGMclipList, currentBGMclipIndex), 1.0);
         
         if(currentBGMclipIndex == currentBGMclipCount - 2)
@@ -401,13 +414,20 @@ default
     
     state_entry()
     {
+        llSetTimerEvent(0.0);          
         RefreshHUD();
-        PlayBGM();
+        ChangeBGM(currentBGM);
         llListenRemove(listenHandle);          
         listenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");
     }
+    
     state_exit()
     {
+        if(playBGM)
+        {
+            currentBGMclipIndex = -1;
+        }
+        
         llListenRemove(listenHandle);   
     }
     
@@ -435,26 +455,32 @@ default
         {    
             if(playBGM)
             {
+                playBGM = FALSE;
                 StopBGM();
             }
             else
             {
+                playBGM = TRUE;
                 PlayBGM();   
             }
         }
-		else if(linkNumber == VISIBILITY_CONTROL_LINK_NUMBER)
-		{
-			if(hideHUD)
-			{
-				hideHUD = FALSE;
-			}
-			else
-			{
-				hideHUD = TRUE;
-			}
-			
-			RefreshHUD();
-		}
+        else if(linkNumber == VISIBILITY_CONTROL_LINK_NUMBER)
+        {
+            if(hideHUD)
+            {
+                hideHUD = FALSE;
+            }
+            else
+            {
+                hideHUD = TRUE;
+            }
+            
+            RefreshHUD();
+        }
+        else if(linkNumber == PING_LINK_NUMBER)
+        {
+            state pinging;
+        }
     }
     
     listen(integer channel, string name, key id, string message)
@@ -522,8 +548,16 @@ default
 
 state deactivated
 {
+    on_rez(integer start_param)
+    {
+        state default;
+    }
+    
     state_entry()
     {
+        llSetTimerEvent(0.0);         
+        //llOwnerSay("Play BGM Toggle: " + (string)playBGM + "\nCurrent Index: " + (string)currentBGMclipIndex);    
+        llStopSound();
         timerCounter = 1;
         llSetText("HUD Deactivated\nPlease Wait for\n5 seconds.", <1.0,0.0,0.0>, 1.0);
         llTriggerSound(SOUND_DEACTIVATED, 1.0);
@@ -539,9 +573,55 @@ state deactivated
         }    
         else
         {
-            llSetTimerEvent(0.0);  
             timerCounter = 1;
             state default;            
         }
     }
+}
+
+state pinging
+{
+    on_rez(integer start_param)
+    {
+        state default;
+    }
+    
+    state_entry()
+    {
+        llSetTimerEvent(0.0);         
+        llStopSound();
+        llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
+            PRIM_TEXT, "[Pinging...]", <0.0, 1.0, 0.0>, 1.0]);            
+        llPlaySound(SOUND_PING, 1.0);
+        
+        float pingInterval = distanceFromObject / 20.0;
+        pingCount = llCeil((float)PING_TIME / pingInterval);
+        timerCounter = 1;        
+        llSetTimerEvent(pingInterval);
+    }
+    
+    timer()
+    {        
+        if(timerCounter < pingCount)
+        {
+            llPlaySound(SOUND_PING, 1.0);            
+        }
+        else
+        {
+            
+            state default;
+        }
+        
+        timerCounter++;
+    }
+    
+    touch_end(integer num_detected)
+    {
+        integer linkNumber = llDetectedLinkNumber(0);
+        
+        if(linkNumber == PING_LINK_NUMBER)
+        {
+            state default;
+        }        
+    }        
 }
