@@ -1,5 +1,5 @@
 //Settings
-integer PING_TIME = 10;
+integer PING_TIME = 5;
 
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -124,7 +124,7 @@ integer currentBGMclipIndex = 0;
 integer currentBGMclipCount = 0;
 integer playBGM = TRUE;
 //Ping Variables
-float distanceFromObject = 5.0;
+float distanceFromObject = 25.0;
 integer pingCount = PING_TIME;
 //Visibility Variables
 integer hideHUD = FALSE;
@@ -348,6 +348,18 @@ RemoveToken(string name)
     RefreshHUD();
 }
 
+RequestPing()
+{
+    string timeStamp = llGetTimestamp();
+    key avatarKey = llGetOwner();
+    string command = "REQUEST_PING";
+    string parameter = llGetOwner();
+    
+    string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter);
+    
+    llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);
+}
+
 ReturnTokenList()
 {
     string timeStamp = llGetTimestamp();
@@ -479,7 +491,7 @@ default
         }
         else if(linkNumber == PING_LINK_NUMBER)
         {
-            state pinging;
+            state initialize_ping;
         }
     }
     
@@ -579,7 +591,61 @@ state deactivated
     }
 }
 
-state pinging
+state initialize_ping
+{
+    on_rez(integer start_param)
+    {
+        state default;
+    }
+    
+    state_entry()
+    {
+        llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
+            PRIM_TEXT, "[Activating Ping...]", <1.0, 1.0, 0.0>, 1.0]);      
+          
+        llListenRemove(listenHandle);          
+        listenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");    
+        
+        RequestPing();
+        llSetTimerEvent(2.0); 
+    }
+    
+    state_exit()
+    {
+        llListenRemove(listenHandle);        
+    }
+    
+    listen(integer channel, string name, key id, string message)
+    {
+        list parameterList = llParseString2List(Dexor(message), [","], [""]);
+        
+        if(llGetListLength(parameterList) == 4)
+        {
+            string timeStamp = llList2Key(parameterList, TIME_STAMP);        
+            key avatarKey = llList2Key(parameterList, AVATAR_KEY);
+            string command = llList2String(parameterList, COMMAND);
+            string parameter = llList2String(parameterList, PARAMETER);
+            
+            if(avatarKey == llGetOwner())
+            {        
+                if(command == "RETURN_PING")
+                {
+                    if(distanceFromObject > (float)parameter)
+                    {
+                        distanceFromObject = (float)parameter;
+                    }
+                }
+            }
+        }
+    }
+    
+    timer()
+    {
+        state play_ping;
+    }
+}
+
+state play_ping
 {
     on_rez(integer start_param)
     {
@@ -594,10 +660,24 @@ state pinging
             PRIM_TEXT, "[Pinging...]", <0.0, 1.0, 0.0>, 1.0]);            
         llPlaySound(SOUND_PING, 1.0);
         
-        float pingInterval = distanceFromObject / 20.0;
-        pingCount = llCeil((float)PING_TIME / pingInterval);
-        timerCounter = 1;        
-        llSetTimerEvent(pingInterval);
+        if(distanceFromObject < 20.0)
+        {
+            float pingInterval = distanceFromObject / 10.0;
+            pingCount = llCeil((float)PING_TIME / pingInterval);
+            timerCounter = 1;  
+			llOwnerSay("Object found! Distance to object: " + llCeil(distanceFromObject) + " m");			
+            llSetTimerEvent(pingInterval);
+        }
+        else
+        {
+			llOwnerSay("No nearby object");
+            state default;
+        }
+    }
+    
+    state_exit()
+    {
+        distanceFromObject = 20.0;
     }
     
     timer()

@@ -6,6 +6,7 @@ integer ACTIVATION_TIME = 30;  //Time until object disappears (seconds) after be
 float DEACTIVATED_ALPHA = 0.2; //1.0 for fully opaque, 0.0 for fully transparent 
 integer SHOW_COUNTDOWN = TRUE; //Show floating text countdown
 vector COUNTDOWN_COLOR = <1.0, 1.0, 1.0>;
+integer ENABLE_PING = TRUE; //Allow object to be ping by HUD
 /*^### Scavenger Object Settings - Make Changes Above ###^*/
 
 /*Global Constants*/
@@ -39,6 +40,26 @@ string Dexor(string data, string xorKey)
      return llBase64ToString(llXorBase64(data, llStringToBase64(xorKey)));
 }
 
+/*Ping Function*/
+ReturnPing(key avatarKey)
+{
+    string timeStamp = llGetTimestamp();        
+    string command = "RETURN_PING";
+    string parameter = "100.0";
+      
+    list detailRequest = llGetObjectDetails(avatarKey ,[OBJECT_POS]);
+    
+    if(llGetListLength(detailRequest) != 0)
+    {
+        vector avatarPosition = llList2Vector(detailRequest, 0);
+        parameter = (string)llVecDist(avatarPosition,llGetPos());
+        
+        string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);
+
+        llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);            
+    }        
+}
+
 default
 {
     state_entry()
@@ -54,38 +75,35 @@ default
             state activated;   
         }
     }
+    
     state_exit()
     {
         llListenRemove(listenHandle);          
     }
-
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);
-        
-        //For Debugging
-        //llOwnerSay(Dexor(message));
+        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);  
+                      
+        //Check if Avatar
+        if(llGetListLength(parameterList) != 4)
+        {
+            parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [","], [""]);        
+        }        
         
         if(llGetListLength(parameterList) == 4)
-        {
-            //For Debugging
-            //llOwnerSay("Correct Parameter.");
-            
+        {   
             string timeStamp = llList2Key(parameterList, TIME_STAMP);        
-            string triggerID = llList2String(parameterList, ID);
+            string triggerID = llList2String(parameterList, ID); //Avatar Key or Trigger ID
             string command = llList2String(parameterList, COMMAND);
-            string parameter = llList2String(parameterList, PARAMETER);
-            
-            if(triggerID == TRIGGER_ID)
+            string parameter = llList2String(parameterList, PARAMETER);      
+                    
+            if(command == "REQUEST_PING" & ENABLE_PING)
             {
-                if(command == "ACTIVATE")
-                {
-                    state activated;
-                }
-            }
+                ReturnPing((key)triggerID);
+            }            
         }
-    }    
+    } 
 }
 
 state activated
@@ -95,19 +113,22 @@ state activated
         llSetAlpha(1.0, ALL_SIDES);          
         if(!ALWAYS_VISIBLE)
         {
-			if(SHOW_COUNTDOWN)
-			{
-				llSetText((string)ACTIVATION_TIME, COUNTDOWN_COLOR, 1.0); 
-			}		
+            if(SHOW_COUNTDOWN)
+            {
+                llSetText((string)ACTIVATION_TIME, COUNTDOWN_COLOR, 1.0); 
+            }        
             timerCounter = 1;
             llSetTimerEvent(1.0);
         }
+        
+        llListenRemove(listenHandle);
+        listenHandle = llListen(SCAVENGER_OBJECT_CHANNEL, "", "", "");        
     }
-	
-	state_exit()
-	{
-		llSetText("", COUNTDOWN_COLOR, 0.0); 	
-	}
+    
+    state_exit()
+    {
+        llSetText("", COUNTDOWN_COLOR, 0.0);     
+    }
     
     touch_end(integer num_detected)
     {
@@ -125,7 +146,7 @@ state activated
     {
         if(timerCounter != ACTIVATION_TIME)
         {
-			llSetText((string)(ACTIVATION_TIME - timerCounter), COUNTDOWN_COLOR, 1.0); 		
+            llSetText((string)(ACTIVATION_TIME - timerCounter), COUNTDOWN_COLOR, 1.0);         
             timerCounter++;   
         }
         else
@@ -135,5 +156,29 @@ state activated
             state default;   
         }
     }
+    
+    listen(integer channel, string name, key id, string message)
+    {
+        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);  
+                      
+        //Check if Avatar
+        if(llGetListLength(parameterList) != 4)
+        {
+            parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [","], [""]);        
+        }        
+        
+        if(llGetListLength(parameterList) == 4)
+        {   
+            string timeStamp = llList2Key(parameterList, TIME_STAMP);        
+            string triggerID = llList2String(parameterList, ID); //Avatar Key or Trigger ID
+            string command = llList2String(parameterList, COMMAND);
+            string parameter = llList2String(parameterList, PARAMETER);      
+                    
+            if(command == "REQUEST_PING" & ENABLE_PING)
+            {
+                ReturnPing((key)triggerID);
+            }            
+        }
+    } 
 }
     
