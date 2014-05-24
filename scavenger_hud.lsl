@@ -665,12 +665,12 @@ state play_ping
             float pingInterval = distanceFromObject / 10.0;
             pingCount = llCeil((float)PING_TIME / pingInterval);
             timerCounter = 1;  
-			llOwnerSay("Object found! Distance to object: " + llCeil(distanceFromObject) + " m");			
+            llOwnerSay("Object found! Distance to object: " + (string)llCeil(distanceFromObject) + " m");            
             llSetTimerEvent(pingInterval);
         }
         else
         {
-			llOwnerSay("No nearby object");
+            llOwnerSay("No nearby object");
             state default;
         }
     }
