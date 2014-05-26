@@ -54,18 +54,3 @@ default
         llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);    
     }
 }
-
-state activated
-{
-    state_entry()
-    {
-        llSetTimerEvent(ACTIVATION_TIME);
-    }
-      
-    timer()
-    {
-		llSetTimerEvent(0.0);
-		state default;   
-    }
-}
-    

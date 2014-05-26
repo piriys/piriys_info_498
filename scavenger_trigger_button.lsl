@@ -2,6 +2,7 @@
 string TOKEN_NAME = "Educational"; //VSD Value (Pick valid value from VSD_LIST below if this is not a decoy)
 string TRIGGER_ID = "Educational Token Dispenser"; //Object name - Make sure this matches with the object settings in scavenger_object.lsl, meaningful name preferred
 integer ACTIVATION_TIME = 30;  //Time until object disappears (seconds) after being activated (make sure ALWAYS_VISIBLE = FALSE in the scavenger_object.lsl)
+integer ACTIVATION_WORD = "educational"; //Wod
 /*^### Trigger Button Settings - Make Changes Above ###^*/
 
 /*Global Constants*/
@@ -52,28 +53,6 @@ default
         string xorParameterList = Xor(timeStamp + "," + triggerID + "," + command + "," + parameter, XOR_KEY + triggerID);
         
         llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);    
-    }
-}
-
-state activated
-{
-    state_entry()
-    {
-        timerCounter = 1;
-        llSetTimerEvent(1.0);
-    }
-      
-state activated
-{
-    state_entry()
-    {
-        llSetTimerEvent(ACTIVATION_TIME);
-    }
-      
-    timer()
-    {
-		llSetTimerEvent(0.0);
-		state default;   
     }
 }
     
