@@ -84,8 +84,8 @@ default
     listen(integer channel, string name, key id, string message)
     {
         list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);  
-                      
-        //Check if Avatar
+        
+		//If from HUD
         if(llGetListLength(parameterList) != 4)
         {
             parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [","], [""]);        

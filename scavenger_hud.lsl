@@ -1,6 +1,7 @@
 //Settings
 integer PING_TIME = 10;
 float MINIMUM_PING_INTERVAL = 0.5;
+float NPC_TIMEOUT = 20.0;
 
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -123,6 +124,9 @@ integer TIME_STAMP = 0;
 integer AVATAR_KEY = 1;
 integer COMMAND = 2;
 integer PARAMETER = 3;
+integer TRIGGER_ID = 0;
+integer NPC_TEXTURE = 1;
+integer DIALOGUE_OPTIONS = 2;
 
 //Global Variables
 integer listenHandle = 0;
@@ -142,6 +146,10 @@ float distanceFromObject = 25.0;
 integer pingCount = PING_TIME;
 //Visibility Variables
 integer hideHUD = FALSE;
+//NPC Variables
+string currentNPC = "";
+key currentNPCtexture = TEXTURE_BLANK;
+list currentDialogueOptions = [];
 
 //Encode & Decode Functions (for security)
 string Xor(string data)
@@ -567,6 +575,15 @@ default
                         currentBGMclipIndex = tempCurrentBGMclipIndex;
                     }
                 }
+				else if (command == "RETURN_DIALOGUE_OPTION")
+				{
+					list npcParameterList = llParseString2List(parameter, ["***"], [""]);
+					currentNPC = llList2String(npcParameterList, TRIGGER_ID);
+					currentNPCtexture = llList2String(npcParameterList, NPC_TEXTURE);
+					currentDialogueOptions = llParseString2List(llList2String(npcParameterList, DIALOGUE_OPTIONS), ["###"], [""]);
+					
+					llOwnerSay("NPC: " + currentNPC + "\nOptions: " + llList2String(npcParameterList, DIALOGUE_OPTIONS));
+				}
             }
         }
     }
