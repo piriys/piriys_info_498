@@ -537,7 +537,7 @@ default
         }
         else if(linkNumber == RESET_BUTTON_LINK_NUMBER & !hideHUD & SHOW_RESET)
         {
-            llResetScript();
+            ResetHUD();
         }
         else if(linkNumber == BGM_CONTROL_LINK_NUMBER & !hideHUD)
         {    

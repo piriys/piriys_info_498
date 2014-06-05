@@ -3,18 +3,18 @@ integer TALK = 0;
 integer GIVE = 1;
 
 /*v### NPC Settings - Make Changes Below ###v*/
-string TRIGGER_ID = "Alpha"; //NPC Name
+string TRIGGER_ID = "Ruby"; //NPC Name
 string GREETINGS = "Hi! Welcome to Courtesy VSD Scavenger Hunt! How may I help you?";
-string DIALOGUE_OPTION_A = "What is this place?";
-string DIALOGUE_OPTION_B = "How do I play?";
-string DIALOGUE_OPTION_C = "Who are you?";
-string REPLY_A = "This place is built as a project for INFO 498 Spring class.";
-string REPLY_B = "How to play: read the sign and follow the instructions";
-string REPLY_C = "You can call me Alpha. I am an information NPC!";
+string DIALOGUE_OPTION_A = "Who are you?";
+string DIALOGUE_OPTION_B = "Have you seen any broken mill parts around here?";
+string DIALOGUE_OPTION_C = "Where can get more information?";
+string REPLY_A = "My name is Ruby. I take care of this HUB! Please make yourself at home.";
+string REPLY_B = "I think I saw something flew from the sky just a few moments ago.";
+string REPLY_C = "Ask people around the terminal. They should be able to give you more information.";
 integer ACTION_OPTION_A = TALK;
 integer ACTION_OPTION_B = TALK;
 integer ACTION_OPTION_C = TALK;
-key NPC_TEXTURE = "caa30bc7-80ff-d693-9085-f507b5fc3758"; //Texture UUID
+key NPC_TEXTURE = "aa537522-6b0d-0b82-309f-b63a11040717"; //Texture UUID
 string FLOATING_TEXT = "[Wear HUD and click to interact with this NPC]";
 /*^### NPC Settings- Make Changes Above ###^*/
 
@@ -59,6 +59,8 @@ ReturnAction(key avatarKey, integer dialogueIndex)
     {
         string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
         parameter = TRIGGER_ID + "***" + reply;
+        
+        llOwnerSay("Reply: " + reply);
     }
     else if(action == GIVE)
     {
@@ -108,13 +110,14 @@ default
             string triggerID = llList2String(parameterList, ID); //Avatar Key or Trigger ID
             string command = llList2String(parameterList, COMMAND);
             string parameter = llList2String(parameterList, PARAMETER);      
-			
+            
             if(command == "CHOOSE_DIALOGUE")
             {
                 integer dialogueIndex = llListFindList(DIALOGUE_OPTIONS, [parameter]);  
-                               
+                         
                 if(dialogueIndex != -1)
                 {
+                    llOwnerSay("Index Found: " + (string)dialogueIndex);   
                     ReturnAction(llGetOwnerKey(id), dialogueIndex);
                 }
             }
