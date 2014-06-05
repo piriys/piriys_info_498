@@ -31,6 +31,8 @@ integer SET_NPC_TEXTURE = 1;
 integer SET_DIALOGUE = 2;
 integer SET_TIMEOUT = 3;
 integer TALK = 4;
+integer NPC_RESET = 5;
+integer CHOOSE_DIALOGUE = 6;
 
 //Link Numbers    
 integer LAST_VSD_LINK_NUMBER = 17;

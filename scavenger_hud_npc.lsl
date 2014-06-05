@@ -7,8 +7,9 @@ integer SET_DIALOGUE = 2;
 integer SET_TIMEOUT = 3;
 integer TALK = 4;
 integer NPC_RESET = 5;
+integer CHOOSE_DIALOGUE = 6;
 
-string currentNPC = "";
+string currentNPC = "DEFAULT";
 key currentNPCtexture = TEXTURE_BLANK;
 list currentDialogueOptions = [];
 
@@ -49,6 +50,10 @@ default
         {
             llOwnerSay(str);
         }
+		else if(num == CHOOSE_DIALOGUE)
+		{
+			
+		}
     }
     
     timer()
