@@ -31,7 +31,7 @@ integer SET_NPC_TEXTURE = 1;
 integer SET_DIALOGUE = 2;
 integer SET_TIMEOUT = 3;
 integer TALK = 4;
-integer NPC_RESET = 5;
+integer RESET_NPC = 5;
 integer CHOOSE_DIALOGUE = 6;
 integer REFRESH_NPC = 7;
 
@@ -248,6 +248,8 @@ ResetHUD()
     llOwnerSay("Resetting HUD...");    
     tokenList = [];
     RefreshHUD();
+	ResetNPC();
+	llResetScript();
 }
 
 RefreshBGMcontrol()
@@ -289,13 +291,13 @@ RefreshHUD()
     {
         string latestTokenName = llList2String(tokenList, count - 1);
         integer latestVsdIndex = llListFindList(VSD_LIST, [latestTokenName]);
-        rootText = "Current Token" + " (" + (string)llGetListLength(tokenList) + "/16):\n" + llDumpList2String(tokenList, "\n");
+        rootText = "Current Token" + " (" + (string)llGetListLength(tokenList) + "/16):";
         latestTokenText = "Latest Token:\n" + latestTokenName;
         
         ChangeVsdTexture(latestVsdIndex, LATEST_TOKEN_DISPLAY_LINK_NUMBER);
             
         integer index = 0;    
-        for(index = 0; index < count; index++)
+        for(index = 0; index < count & index < 5; index++)
         {
             string tokenName = llList2String(tokenList, index);
             integer vsdIndex = llListFindList(VSD_LIST, [tokenName]);
@@ -304,7 +306,14 @@ RefreshHUD()
             {
                 ChangeVsdTexture(vsdIndex, vsdIndex + 2);
             }
-        }            
+            
+            rootText = rootText + "\n[" + tokenName + "]";
+        }   
+        
+        if(count > 5)
+        {
+            rootText = rootText + "\n...And " + (string)(count - 5) + " more!"; 
+        }
     }
     
     if(!hideHUD)
@@ -328,7 +337,7 @@ RefreshHUD()
         PRIM_TEXT, rootText, <1.0,1.0,1.0>, SHOW_TEXT_TOKEN_DISPLAY]);        
 
     llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
-        PRIM_TEXT, "[Collected Token(s)]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
+        PRIM_TEXT, rootText, <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
 
     llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,    
@@ -440,6 +449,11 @@ RefreshNPC()
     llMessageLinked(NPC_LINK_NUMBER, REFRESH_NPC, "", "");    
 }
 
+ResetNPC()
+{
+    llMessageLinked(NPC_LINK_NUMBER, RESET_NPC, "", "");    
+}
+
 default
 {   
     on_rez(integer start_param)
@@ -541,7 +555,7 @@ default
             state initialize_ping;
         }
         else if(linkNumber == CHOICE_A_LINK_NUMBER & !hideHUD)
-        {
+        {        
             llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "A", "");            
         }
         else if(linkNumber == CHOICE_B_LINK_NUMBER & !hideHUD)
@@ -554,7 +568,7 @@ default
         }     
         else if(linkNumber == CHOICE_D_LINK_NUMBER & !hideHUD)
         {
-            llMessageLinked(NPC_LINK_NUMBER, NPC_RESET, "", "");                
+            llMessageLinked(NPC_LINK_NUMBER, RESET_NPC, "", "");                
         }            
     }
     

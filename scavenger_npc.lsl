@@ -7,15 +7,15 @@ string TRIGGER_ID = "Alpha"; //NPC Name
 string GREETINGS = "Hi! Welcome to Courtesy VSD Scavenger Hunt! How may I help you?";
 string DIALOGUE_OPTION_A = "What is this place?";
 string DIALOGUE_OPTION_B = "How do I play?";
-string DIALOGUE_OPTION_C = "Option C";
+string DIALOGUE_OPTION_C = "Who are you?";
 string REPLY_A = "This place is built as a project for INFO 498 Spring class.";
 string REPLY_B = "How to play: read the sign and follow the instructions";
-string REPLY_C = "Reply to Option C";
+string REPLY_C = "You can call me Alpha. I am an information NPC!";
 integer ACTION_OPTION_A = TALK;
 integer ACTION_OPTION_B = TALK;
 integer ACTION_OPTION_C = TALK;
-key NPC_TEXTURE = TEXTURE_BLANK; //Texture UUID
-string FLOATING_TEXT = "[Wear HUD and click here to interact with this NPC]";
+key NPC_TEXTURE = "caa30bc7-80ff-d693-9085-f507b5fc3758"; //Texture UUID
+string FLOATING_TEXT = "[Wear HUD and click to interact with this NPC]";
 /*^### NPC Settings- Make Changes Above ###^*/
 
 /*Global Constants*/
@@ -108,11 +108,11 @@ default
             string triggerID = llList2String(parameterList, ID); //Avatar Key or Trigger ID
             string command = llList2String(parameterList, COMMAND);
             string parameter = llList2String(parameterList, PARAMETER);      
-            
+			
             if(command == "CHOOSE_DIALOGUE")
             {
                 integer dialogueIndex = llListFindList(DIALOGUE_OPTIONS, [parameter]);  
-                                  
+                               
                 if(dialogueIndex != -1)
                 {
                     ReturnAction(llGetOwnerKey(id), dialogueIndex);

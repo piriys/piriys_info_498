@@ -13,7 +13,7 @@ integer SET_NPC_TEXTURE = 1;
 integer SET_DIALOGUE = 2;
 integer SET_TIMEOUT = 3;
 integer TALK = 4;
-integer NPC_RESET = 5;
+integer RESET_NPC = 5;
 integer CHOOSE_DIALOGUE = 6;
 integer REFRESH_NPC = 7;
 
@@ -45,7 +45,7 @@ RefreshNPC()
     
     llSetLinkPrimitiveParamsFast(index, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),    
-        PRIM_TEXT, currentNPC, <1.0, 1.0, 1.0>, (float)(activeNPC),
+        PRIM_TEXT, "[NPC]\n" + currentNPC, <1.0, 1.0, 1.0>, (float)(activeNPC),
         PRIM_TEXTURE, HUD_FRONT_FACE, (string)currentNPCtexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0]);        
         
     for(index = CHOICE_A_LINK_NUMBER; index <= CHOICE_C_LINK_NUMBER; index++)
@@ -91,12 +91,17 @@ default
         }
         else if(num == TALK)
         {
+            llSetTimerEvent(0.0);
+            llSetTimerEvent(TIMEOUT);        
             llOwnerSay(str);
         }
         else if(num == CHOOSE_DIALOGUE)
         {
+            llSetTimerEvent(0.0);
+            llSetTimerEvent(TIMEOUT);    
+        
             integer dialogueIndex = llListFindList(DIALOGUE_CHOICES, [str]);
-            
+			
             if(currentNPC != "DEFAULT")
             {           
                 string timeStamp = llGetTimestamp();      
@@ -108,7 +113,7 @@ default
                 llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);       
             }
         }
-        else if(num == NPC_RESET)
+        else if(num == RESET_NPC)
         {
             llSetTimerEvent(0.0);
             llResetScript();
@@ -119,7 +124,7 @@ default
     
     timer()
     {
-		llOwnerSay("*NPC interaction timed out*");
+        llOwnerSay("*NPC interaction timed out*");
         llSetTimerEvent(0.0);
         llResetScript();
     }
