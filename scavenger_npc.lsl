@@ -21,6 +21,7 @@ string FLOATING_TEXT = "[Wear HUD and click to interact with this NPC]";
 /*^### NPC Settings- Make Changes Above ###^*/
 
 /*Global Constants*/
+string SEPERATOR = "|||";
 list DIALOGUE_OPTIONS = [DIALOGUE_OPTION_A, DIALOGUE_OPTION_B, DIALOGUE_OPTION_C];
 list ACTION_OPTIONS = [ACTION_OPTION_A, ACTION_OPTION_B, ACTION_OPTION_C]; 
 list REPLY_OPTIONS = [REPLY_A, REPLY_B, REPLY_C]; 
@@ -67,7 +68,7 @@ ReturnAction(key avatarKey, integer dialogueIndex)
         
     }
 
-    string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);  
+    string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + (string)avatarKey);  
     
     llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);      
 }
@@ -88,21 +89,21 @@ default
         string command = "RETURN_DIALOGUE_OPTION";
         string parameter = TRIGGER_ID + "***" + (string)NPC_TEXTURE + "***" + llDumpList2String(DIALOGUE_OPTIONS, "###");
         
-        string xorParameterList = Xor(timeStamp + "," + avatarKey + "," + command + "," + parameter, XOR_KEY + avatarKey);
+        string xorParameterList = Xor(timeStamp + SEPERATOR + avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + avatarKey);
         
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList); 
 
         command = "NPC_TALK";
         parameter = TRIGGER_ID + "***" + GREETINGS;        
         
-        xorParameterList = Xor(timeStamp + "," + avatarKey + "," + command + "," + parameter, XOR_KEY + avatarKey);        
+        xorParameterList = Xor(timeStamp + SEPERATOR + avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + avatarKey);        
 
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);  
     }
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);  
+        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [SEPERATOR], [""]);  
         
         if(llGetListLength(parameterList) == 4)
         {   

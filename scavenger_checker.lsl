@@ -5,6 +5,7 @@ string AWARD_NAME = "Courtesy Award"; //Award name in this object inventory
 /*^### Scavenger Checker Settings - Make Changes Above ###^*/
 
 /*Global Constants*/
+string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -51,14 +52,14 @@ default
         string command = "REQUEST_TOKEN_CHECK";
         string parameter = TOKEN_NAME;
         
-        string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);
+        string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + (string)avatarKey);
         
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);
     }
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [","], [""]);
+        list parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [SEPERATOR], [""]);
         
         //For Debugging
         //llOwnerSay(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)));

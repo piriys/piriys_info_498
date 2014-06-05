@@ -7,6 +7,7 @@ integer SHOW_LATEST_TOKEN = FALSE;
 integer SHOW_RESET = TRUE;
 
 //Global Constants
+string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -421,7 +422,7 @@ RequestPing()
     string command = "REQUEST_PING";
     string parameter = llGetOwner();
     
-    string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter);
+    string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter);
     
     llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);
 }
@@ -433,7 +434,7 @@ ReturnTokenList()
     string command = "RETURN_TOKEN_LIST";
     string parameter = llDumpList2String(tokenList, "##");
     
-    string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter);
+    string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter);
     
     llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);
 }
@@ -453,7 +454,7 @@ ReturnTokenCheck(string name)
         string command = "RETURN_TOKEN_CHECK";
         string parameter = name;
         
-        string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + (string)parameter);    
+        string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + (string)parameter);    
         llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);         
         llOwnerSay("Token found!");          
     }
@@ -589,7 +590,7 @@ default
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message), [","], [""]);
+        list parameterList = llParseString2List(Dexor(message), [SEPERATOR], [""]);
         
         //For Debugging
         //llOwnerSay(Dexor(message));
@@ -728,7 +729,7 @@ state initialize_ping
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message), [","], [""]);
+        list parameterList = llParseString2List(Dexor(message), [SEPERATOR], [""]);
         
         if(llGetListLength(parameterList) == 4)
         {

@@ -1,6 +1,7 @@
 float TIMEOUT = 50.0;
 
 //Global Constants
+string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -119,7 +120,7 @@ default
                 string command = "CHOOSE_DIALOGUE";
                 string parameter = llList2String(currentDialogueOptions, dialogueIndex);  
                 
-                string xorParameterList = Xor(timeStamp + "," + triggerID + "," + command + "," + parameter, XOR_KEY + triggerID);    
+                string xorParameterList = Xor(timeStamp + SEPERATOR + triggerID + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + triggerID);    
                 llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);       
             }
         }

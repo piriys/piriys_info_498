@@ -5,6 +5,7 @@ integer ACTIVATION_TIME = 30;  //Time until object disappears (seconds) after be
 /*^### Trigger Plate Settings - Make Changes Above ###^*/
 
 /*Global Constants*/
+string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -49,7 +50,7 @@ default
         string command = "ACTIVATE";
         string parameter = (string)llDetectedKey(0);
         
-        string xorParameterList = Xor(timeStamp + "," + triggerID + "," + command + "," + parameter, XOR_KEY + triggerID);
+        string xorParameterList = Xor(timeStamp + SEPERATOR + triggerID + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + triggerID);
         
         llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);    
     }

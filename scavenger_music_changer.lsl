@@ -3,6 +3,7 @@ string BGM_NAME = "MOVE_FORWARD"; //Background Music name
 /*^### Music Changer Settings - Make Changes Above ###^*/
 
 /*Global Constants*/
+string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -41,7 +42,7 @@ default
         string command = "CHANGE_BGM";
         string parameter = BGM_NAME;
         
-        string xorParameterList = Xor(timeStamp + "," + avatarKey + "," + command + "," + parameter, XOR_KEY + avatarKey);
+        string xorParameterList = Xor(timeStamp + SEPERATOR + avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + avatarKey);
         
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);    
     }

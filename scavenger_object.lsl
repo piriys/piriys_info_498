@@ -10,6 +10,7 @@ integer ENABLE_PING = TRUE; //Allow object to be ping by HUD
 /*^### Scavenger Object Settings - Make Changes Above ###^*/
 
 /*Global Constants*/
+string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -54,7 +55,7 @@ ReturnPing(key avatarKey)
         vector avatarPosition = llList2Vector(detailRequest, 0);
         parameter = (string)llVecDist(avatarPosition,llGetPos());
         
-        string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);
+        string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + (string)avatarKey);
 
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);            
     }        
@@ -83,12 +84,12 @@ default
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);  
+        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [SEPERATOR], [""]);  
         
 		//If from HUD
         if(llGetListLength(parameterList) != 4)
         {
-            parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [","], [""]);        
+            parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [SEPERATOR], [""]);        
         }        
         
         if(llGetListLength(parameterList) == 4)
@@ -137,7 +138,7 @@ state activated
         string command = "ADD_TOKEN";
         string parameter = TOKEN_NAME;
         
-        string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);
+        string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + (string)avatarKey);
         
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);
     }
@@ -159,12 +160,12 @@ state activated
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);  
+        list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [SEPERATOR], [""]);  
                       
         //Check if Avatar
         if(llGetListLength(parameterList) != 4)
         {
-            parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [","], [""]);        
+            parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [SEPERATOR], [""]);        
         }        
         
         if(llGetListLength(parameterList) == 4)
