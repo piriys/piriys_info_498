@@ -534,6 +534,18 @@ default
         {
             state initialize_ping;
         }
+        else if(linkNumber == CHOICE_A_LINK_NUMBER & !hideHUD)
+        {
+            llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "A", "");            
+        }
+        else if(linkNumber == CHOICE_B_LINK_NUMBER & !hideHUD)
+        {
+            llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "B", "");                
+        }        
+        else if(linkNumber == CHOICE_C_LINK_NUMBER & !hideHUD)
+        {
+            llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "C", "");                
+        }        
     }
     
     listen(integer channel, string name, key id, string message)
@@ -608,6 +620,7 @@ default
                 }
                 else if (command == "NPC_TALK")
                 {
+                    llOwnerSay("NPC replying...");
                     list npcParameterList = llParseString2List(parameter, ["***"], [""]);                
                     llMessageLinked(NPC_LINK_NUMBER, TALK, 
                         llList2String(npcParameterList, 1), "");

@@ -4,7 +4,7 @@ integer GIVE = 1;
 
 /*v### NPC Settings - Make Changes Below ###v*/
 string TRIGGER_ID = "Alpha"; //NPC Name
-string GREETINGS = "Hello";
+string GREETINGS = "Hello World!";
 string DIALOGUE_OPTION_A = "Option A";
 string DIALOGUE_OPTION_B = "Option B";
 string DIALOGUE_OPTION_C = "Option C";
@@ -22,7 +22,7 @@ list DIALOGUE_OPTIONS = [DIALOGUE_OPTION_A, DIALOGUE_OPTION_B, DIALOGUE_OPTION_C
 list ACTION_OPTIONS = [ACTION_OPTION_A, ACTION_OPTION_B, ACTION_OPTION_C]; 
 list REPLY_OPTIONS = [REPLY_A, REPLY_B, REPLY_C]; 
 integer SCAVENGER_HUD_CHANNEL = -498; 
-integer SCAVENGER_NPC_CHANNEL = 498;
+integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
     
 /*Index Constants for Incoming Parameters*/
@@ -49,15 +49,25 @@ string Dexor(string data, string xorKey)
 ReturnAction(key avatarKey, integer dialogueIndex)
 {
     integer action = llList2Integer(ACTION_OPTIONS, dialogueIndex);
+
+    string timeStamp = llGetTimestamp();    
+    string command = "NPC_TALK";
+    string parameter = TRIGGER_ID;
     
     if(action == TALK)
     {
-    
+        string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
+        llOwnerSay("Reply: " + reply);
+        parameter = TRIGGER_ID + "***" + reply;
     }
     else if(action == GIVE)
     {
-    
+        parameter = TRIGGER_ID + "***";    
     }
+    llOwnerSay("Parameter: " + parameter);
+    string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);        
+    llOwnerSay(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter); 
+    llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);      
 }
 
 default
@@ -65,7 +75,7 @@ default
     state_entry()
     {
         llListenRemove(listenHandle);    
-        listenHandle = llListen(SCAVENGER_NPC_CHANNEL, "", "", "");
+        listenHandle = llListen(SCAVENGER_OBJECT_CHANNEL, "", "", "");
     }
     
     touch_end(integer num_detected)
@@ -83,23 +93,13 @@ default
         parameter = TRIGGER_ID + "***" + GREETINGS;        
         
         xorParameterList = Xor(timeStamp + "," + avatarKey + "," + command + "," + parameter, XOR_KEY + avatarKey);        
-        
+        llOwnerSay(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter); 
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);  
     }
     
     listen(integer channel, string name, key id, string message)
     {
         list parameterList = llParseString2List(Dexor(message, XOR_KEY + TRIGGER_ID), [","], [""]);  
-        
-        integer isHUD = FALSE;
-        
-        //If from HUD
-        if(llGetListLength(parameterList) != 4)
-        {
-            parameterList = llParseString2List(Dexor(message, XOR_KEY + (string)llGetOwnerKey(id)), [","], [""]);   
-
-            isHUD = TRUE;
-        }        
         
         if(llGetListLength(parameterList) == 4)
         {   
@@ -108,17 +108,15 @@ default
             string command = llList2String(parameterList, COMMAND);
             string parameter = llList2String(parameterList, PARAMETER);      
             
-            if(isHUD)
+            if(command == "CHOOSE_DIALOGUE")
             {
-                if(command == "CHOOSE_DIALOGUE")
+                integer dialogueIndex = llListFindList(DIALOGUE_OPTIONS, [parameter]);
+                llOwnerSay("Checking reply... Index: " + (string)dialogueIndex);  
+                                  
+                if(dialogueIndex != -1)
                 {
-                    integer dialogueIndex = llListFindList(DIALOGUE_OPTIONS, [parameter]);
-                    
-                    if(dialogueIndex != -1)
-                    {
-                        ReturnAction(id, dialogueIndex);
-                    }
-                } 
+                    ReturnAction(llGetOwnerKey(id), dialogueIndex);
+                }
             }
         }
     }     
