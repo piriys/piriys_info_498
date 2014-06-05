@@ -3,6 +3,8 @@ integer TALK = 0;
 integer GIVE = 1;
 
 /*v### NPC Settings - Make Changes Below ###v*/
+
+/***PLEASE DO NOT USE ANY COMMA IN ANY VARIABLES BELOW, I WILL FIX IT SOON***/
 string TRIGGER_ID = "Ruby"; //NPC Name
 string GREETINGS = "Hi! Welcome to Courtesy VSD Scavenger Hunt! How may I help you?";
 string DIALOGUE_OPTION_A = "Who are you?";
@@ -59,8 +61,6 @@ ReturnAction(key avatarKey, integer dialogueIndex)
     {
         string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
         parameter = TRIGGER_ID + "***" + reply;
-        
-        llOwnerSay("Reply: " + reply);
     }
     else if(action == GIVE)
     {
@@ -117,7 +117,6 @@ default
                          
                 if(dialogueIndex != -1)
                 {
-                    llOwnerSay("Index Found: " + (string)dialogueIndex);   
                     ReturnAction(llGetOwnerKey(id), dialogueIndex);
                 }
             }
