@@ -4,17 +4,18 @@ integer GIVE = 1;
 
 /*v### NPC Settings - Make Changes Below ###v*/
 string TRIGGER_ID = "Alpha"; //NPC Name
-string GREETINGS = "Hello World!";
-string DIALOGUE_OPTION_A = "Option A";
-string DIALOGUE_OPTION_B = "Option B";
+string GREETINGS = "Hi! Welcome to Courtesy VSD Scavenger Hunt! How may I help you?";
+string DIALOGUE_OPTION_A = "What is this place?";
+string DIALOGUE_OPTION_B = "How do I play?";
 string DIALOGUE_OPTION_C = "Option C";
-string REPLY_A = "Reply to Option A";
-string REPLY_B = "Reply to Option B";
+string REPLY_A = "This place is built as a project for INFO 498 Spring class.";
+string REPLY_B = "How to play: read the sign and follow the instructions";
 string REPLY_C = "Reply to Option C";
 integer ACTION_OPTION_A = TALK;
 integer ACTION_OPTION_B = TALK;
 integer ACTION_OPTION_C = TALK;
 key NPC_TEXTURE = TEXTURE_BLANK; //Texture UUID
+string FLOATING_TEXT = "[Wear HUD and click here to interact with this NPC]";
 /*^### NPC Settings- Make Changes Above ###^*/
 
 /*Global Constants*/
@@ -57,16 +58,15 @@ ReturnAction(key avatarKey, integer dialogueIndex)
     if(action == TALK)
     {
         string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
-        llOwnerSay("Reply: " + reply);
         parameter = TRIGGER_ID + "***" + reply;
     }
     else if(action == GIVE)
     {
-        parameter = TRIGGER_ID + "***";    
+        
     }
-    llOwnerSay("Parameter: " + parameter);
-    string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);        
-    llOwnerSay(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter); 
+
+    string xorParameterList = Xor(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter, XOR_KEY + (string)avatarKey);  
+    
     llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);      
 }
 
@@ -74,6 +74,7 @@ default
 {
     state_entry()
     {
+        llSetText(FLOATING_TEXT, <1.0, 1.0, 1.0>, 1.0);
         llListenRemove(listenHandle);    
         listenHandle = llListen(SCAVENGER_OBJECT_CHANNEL, "", "", "");
     }
@@ -93,7 +94,7 @@ default
         parameter = TRIGGER_ID + "***" + GREETINGS;        
         
         xorParameterList = Xor(timeStamp + "," + avatarKey + "," + command + "," + parameter, XOR_KEY + avatarKey);        
-        llOwnerSay(timeStamp + "," + (string)avatarKey + "," + command + "," + parameter); 
+
         llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);  
     }
     
@@ -110,8 +111,7 @@ default
             
             if(command == "CHOOSE_DIALOGUE")
             {
-                integer dialogueIndex = llListFindList(DIALOGUE_OPTIONS, [parameter]);
-                llOwnerSay("Checking reply... Index: " + (string)dialogueIndex);  
+                integer dialogueIndex = llListFindList(DIALOGUE_OPTIONS, [parameter]);  
                                   
                 if(dialogueIndex != -1)
                 {

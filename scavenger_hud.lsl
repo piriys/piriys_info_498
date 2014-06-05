@@ -33,6 +33,7 @@ integer SET_TIMEOUT = 3;
 integer TALK = 4;
 integer NPC_RESET = 5;
 integer CHOOSE_DIALOGUE = 6;
+integer REFRESH_NPC = 7;
 
 //Link Numbers    
 integer LAST_VSD_LINK_NUMBER = 17;
@@ -219,7 +220,7 @@ ChangeBGM(string bgm)
             if(playBGM)
             {   
                 string bgmCC = llList2String(BGM_CC, bgmIndex);    
-                llOwnerSay("Current BGM: " + bgmCC);
+                llOwnerSay("Current Track: " + bgmCC);
                 
                 currentBGMclipIndex = 0;            
                 llSetSoundQueueing(FALSE);
@@ -253,14 +254,14 @@ RefreshBGMcontrol()
 {
     if(!hideHUD)
     {
-        string bgmPrompt = "[Turn Off BGM]";
+        string bgmPrompt = "[Turn Off Music]";
         
         if(!playBGM)
         {
-            bgmPrompt = "[Turn On BGM]";      
+            bgmPrompt = "[Turn On Music]";      
         }     
 
-        string bgmDisplay = "No BGM Currently Playing";
+        string bgmDisplay = "No Music Currently Playing";
         
         if(currentBGM != "")
         {
@@ -313,8 +314,7 @@ RefreshHUD()
     
     llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(SHOW_LATEST_TOKEN),
-        PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_LATEST_TOKEN)]);    
-    
+        PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_LATEST_TOKEN)]);  
     llSetLinkPrimitiveParamsFast(RESET_BUTTON_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(SHOW_RESET),    
         PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_RESET)]);
@@ -328,13 +328,14 @@ RefreshHUD()
         PRIM_TEXT, rootText, <1.0,1.0,1.0>, SHOW_TEXT_TOKEN_DISPLAY]);        
 
     llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
-        PRIM_TEXT, "[Teleport to VSD Hubs]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
+        PRIM_TEXT, "[Collected Token(s)]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
 
     llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,    
-        PRIM_TEXT, "[Activate Ping]", <1.0, 1.0, 1.0>, 1.0]);            
+        PRIM_TEXT, "[Activate Hint]", <1.0, 1.0, 1.0>, 1.0]);            
     
     RefreshBGMcontrol();
+    RefreshNPC();
 }
 
 ChangeVsdTexture(integer vsdIndex, integer linkNumber)
@@ -432,6 +433,11 @@ ReturnTokenCheck(string name)
         llSay(SCAVENGER_OBJECT_CHANNEL, xorParameterList);         
         llOwnerSay("Token found!");          
     }
+}
+
+RefreshNPC()
+{
+    llMessageLinked(NPC_LINK_NUMBER, REFRESH_NPC, "", "");    
 }
 
 default
@@ -545,7 +551,11 @@ default
         else if(linkNumber == CHOICE_C_LINK_NUMBER & !hideHUD)
         {
             llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "C", "");                
-        }        
+        }     
+        else if(linkNumber == CHOICE_D_LINK_NUMBER & !hideHUD)
+        {
+            llMessageLinked(NPC_LINK_NUMBER, NPC_RESET, "", "");                
+        }            
     }
     
     listen(integer channel, string name, key id, string message)
@@ -620,7 +630,6 @@ default
                 }
                 else if (command == "NPC_TALK")
                 {
-                    llOwnerSay("NPC replying...");
                     list npcParameterList = llParseString2List(parameter, ["***"], [""]);                
                     llMessageLinked(NPC_LINK_NUMBER, TALK, 
                         llList2String(npcParameterList, 1), "");
@@ -674,7 +683,7 @@ state initialize_ping
     state_entry()
     {
         llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
-            PRIM_TEXT, "[Activating Ping...]", <1.0, 1.0, 0.0>, 1.0]);      
+            PRIM_TEXT, "[Searching for Hint...]", <1.0, 1.0, 0.0>, 1.0]);      
           
         llListenRemove(listenHandle);          
         listenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");    
@@ -730,7 +739,7 @@ state play_ping
         llSetTimerEvent(0.0);         
         llStopSound();
         llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
-            PRIM_TEXT, "[Pinging...]", <0.0, 1.0, 0.0>, 1.0]);            
+            PRIM_TEXT, "[Getting Hint Feedback...]", <0.0, 1.0, 0.0>, 1.0]);            
         llPlaySound(SOUND_PING, 1.0);
         
         if(distanceFromObject < 20.0)
