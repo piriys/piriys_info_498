@@ -5,6 +5,12 @@ integer SCAVENGER_HUD_CHANNEL = -498;
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
 list DIALOGUE_CHOICES = ["A", "B", "C"];
+list CHOICES_TEXTURE = [
+"f1ab51cb-fd52-b31a-2bd4-5a2f25fc6118",
+"30c8f002-373d-b0de-f4e7-359f56c334f7", 
+"26529d72-4fe0-5c03-6876-53eead6dda75",
+"edfd533b-f263-c8a3-01c0-6480aa95abc5"
+];
 integer HUD_FRONT_FACE = 1;
 
 /*Command Constants*/
@@ -28,6 +34,7 @@ string currentNPC = "DEFAULT";
 key currentNPCtexture = TEXTURE_BLANK;
 list currentDialogueOptions = [];
 integer activeNPC = FALSE;
+string latestChat = "";
 
 string Xor(string data, string xorKey)
 {
@@ -51,12 +58,14 @@ RefreshNPC()
     for(index = CHOICE_A_LINK_NUMBER; index <= CHOICE_C_LINK_NUMBER; index++)
     {
         llSetLinkPrimitiveParamsFast(index, [
-            PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),    
+            PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),   
+            PRIM_TEXTURE, HUD_FRONT_FACE, llList2Key(CHOICES_TEXTURE, index - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,                 
             PRIM_TEXT, llList2String(currentDialogueOptions, index - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 1.0>, (float)(activeNPC)]);    
     }  
 
     llSetLinkPrimitiveParamsFast(index, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),    
+        PRIM_TEXTURE, HUD_FRONT_FACE, llList2Key(CHOICES_TEXTURE, CHOICE_D_LINK_NUMBER - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,             
         PRIM_TEXT, "[Leave] See You.", <1.0, 1.0, 1.0>, (float)(activeNPC)]);       
 }
 
@@ -94,6 +103,7 @@ default
             llSetTimerEvent(0.0);
             llSetTimerEvent(TIMEOUT);        
             llOwnerSay(str);
+            latestChat = str;
         }
         else if(num == CHOOSE_DIALOGUE)
         {
@@ -101,7 +111,7 @@ default
             llSetTimerEvent(TIMEOUT);    
         
             integer dialogueIndex = llListFindList(DIALOGUE_CHOICES, [str]);
-			
+            
             if(currentNPC != "DEFAULT")
             {           
                 string timeStamp = llGetTimestamp();      

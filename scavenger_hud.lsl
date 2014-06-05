@@ -4,7 +4,7 @@ float MINIMUM_PING_INTERVAL = 0.5;
 
 integer SHOW_TEXT_TOKEN_DISPLAY = FALSE;
 integer SHOW_LATEST_TOKEN = FALSE;
-integer SHOW_RESET = FALSE;
+integer SHOW_RESET = TRUE;
 
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -54,6 +54,13 @@ key SOUND_OBTAIN = "93c7acbd-8201-85c4-e50d-2567507297c1";
 key SOUND_DEACTIVATED = "a692d9f3-e328-7877-6c2e-18a55c87994e";
 key SOUND_PING = "c74e854f-7ab8-e27b-359b-2052be1c2dfb";
 key VSD_TEXTURE = "cd582a07-ce99-6282-3de0-8678d7d732b6";
+//Menu Texture
+key ON_TEXTURE = "f54f4eac-b476-e465-9237-baba290b458a";
+key OFF_TEXTURE = "8b12b444-8687-a208-b1f8-4e45a41ced08";
+key RESET_TEXTURE = "cfdff146-fc06-def0-638b-61df25d33d15";
+key SHOW_TEXTURE = "7d1ef59b-2216-95ee-e288-889cac2b8532";
+key HIDE_TEXTURE = "8f8f4495-032a-4fd2-b396-c77e758ba497";
+key HINT_TEXTURE = "8d79ca15-c0ca-ff06-1730-f34ab38ec8d3";
 
 //BGM UUIDs
 list BGM_LIST = [
@@ -248,8 +255,8 @@ ResetHUD()
     llOwnerSay("Resetting HUD...");    
     tokenList = [];
     RefreshHUD();
-	ResetNPC();
-	llResetScript();
+    ResetNPC();
+    llResetScript();
 }
 
 RefreshBGMcontrol()
@@ -257,10 +264,12 @@ RefreshBGMcontrol()
     if(!hideHUD)
     {
         string bgmPrompt = "[Turn Off Music]";
+        string bgmTexture = OFF_TEXTURE;
         
         if(!playBGM)
         {
-            bgmPrompt = "[Turn On Music]";      
+            bgmPrompt = "[Turn On Music]";    
+            bgmTexture = ON_TEXTURE;
         }     
 
         string bgmDisplay = "No Music Currently Playing";
@@ -271,6 +280,7 @@ RefreshBGMcontrol()
         }
         
         llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
+            PRIM_TEXTURE, HUD_FRONT_FACE, bgmTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,    
             PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, 1.0]);          
     }        
 }
@@ -279,13 +289,14 @@ RefreshHUD()
 {   
     llSetLinkPrimitiveParamsFast(LINK_SET, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD),
-        PRIM_TEXTURE, HUD_FRONT_FACE, TEXTURE_BLANK, <0.0, 0.0, 0.0>, <0.0, 0.0, 0.0>, 0,
+        PRIM_TEXTURE, HUD_FRONT_FACE, TEXTURE_BLANK, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, (float)(!hideHUD),        
         PRIM_TEXT, "", <1.0, 1.0, 1.0>, 0.0]); 
 
     integer count = llGetListLength(tokenList);        
     string rootText = "No Token Obtained";
     string latestTokenText = "No Latest Token";
     string visibilityText = "[Show HUD]";
+    key visibilityTexture = SHOW_TEXTURE;
     
     if(count != 0)
     {
@@ -319,17 +330,20 @@ RefreshHUD()
     if(!hideHUD)
     {
         visibilityText = "[Hide HUD]";
+        visibilityTexture = HIDE_TEXTURE;        
     }
     
     llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(SHOW_LATEST_TOKEN),
         PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_LATEST_TOKEN)]);  
     llSetLinkPrimitiveParamsFast(RESET_BUTTON_LINK_NUMBER, [
-        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(SHOW_RESET),    
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_RESET),  
+        PRIM_TEXTURE, HUD_FRONT_FACE, RESET_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,            
         PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_RESET)]);
 
     llSetLinkPrimitiveParamsFast(VISIBILITY_CONTROL_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
+        PRIM_TEXTURE, HUD_FRONT_FACE, visibilityTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,
         PRIM_TEXT, visibilityText, <1.0, 1.0, 1.0>, 1.0]);    '
 
     llSetLinkPrimitiveParamsFast(LINK_ROOT, [
@@ -340,7 +354,8 @@ RefreshHUD()
         PRIM_TEXT, rootText, <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
 
     llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
-        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,    
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,  
+        PRIM_TEXTURE, HUD_FRONT_FACE, HINT_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,        
         PRIM_TEXT, "[Activate Hint]", <1.0, 1.0, 1.0>, 1.0]);            
     
     RefreshBGMcontrol();
@@ -554,19 +569,19 @@ default
         {
             state initialize_ping;
         }
-        else if(linkNumber == CHOICE_A_LINK_NUMBER & !hideHUD)
+        else if(linkNumber == CHOICE_A_LINK_NUMBER)
         {        
             llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "A", "");            
         }
-        else if(linkNumber == CHOICE_B_LINK_NUMBER & !hideHUD)
+        else if(linkNumber == CHOICE_B_LINK_NUMBER)
         {
             llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "B", "");                
         }        
-        else if(linkNumber == CHOICE_C_LINK_NUMBER & !hideHUD)
+        else if(linkNumber == CHOICE_C_LINK_NUMBER)
         {
             llMessageLinked(NPC_LINK_NUMBER, CHOOSE_DIALOGUE, "C", "");                
         }     
-        else if(linkNumber == CHOICE_D_LINK_NUMBER & !hideHUD)
+        else if(linkNumber == CHOICE_D_LINK_NUMBER)
         {
             llMessageLinked(NPC_LINK_NUMBER, RESET_NPC, "", "");                
         }            
