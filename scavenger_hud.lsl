@@ -1,7 +1,10 @@
 //Settings
 integer PING_TIME = 10;
 float MINIMUM_PING_INTERVAL = 0.5;
-float NPC_TIMEOUT = 20.0;
+
+integer SHOW_TEXT_TOKEN_DISPLAY = FALSE;
+integer SHOW_LATEST_TOKEN = FALSE;
+integer SHOW_RESET = FALSE;
 
 //Global Constants
 integer SCAVENGER_HUD_CHANNEL = -498; 
@@ -21,6 +24,13 @@ list VSD_LOCATION =
     <192,172,21>, <248,18,21>, <201,21,21>, <95,158,22>,
     <149,103,21>, VSD_DEFAULT_LOCATION, VSD_DEFAULT_LOCATION, <246,77,22>
     ];
+    
+//NPC Child Prim Script Commands
+integer SET_NPC = 0;
+integer SET_NPC_TEXTURE = 1;
+integer SET_DIALOGUE = 2;
+integer SET_TIMEOUT = 3;
+integer TALK = 4;
 
 //Link Numbers    
 integer LAST_VSD_LINK_NUMBER = 17;
@@ -30,6 +40,11 @@ integer VSD_GROUP_BACKGROUND_LINK_NUMBER = 20;
 integer BGM_CONTROL_LINK_NUMBER = 21;
 integer VISIBILITY_CONTROL_LINK_NUMBER = 22;
 integer PING_LINK_NUMBER = 23;
+integer NPC_LINK_NUMBER = 24;
+integer CHOICE_A_LINK_NUMBER = 25;
+integer CHOICE_B_LINK_NUMBER = 26;
+integer CHOICE_C_LINK_NUMBER = 27;
+integer CHOICE_D_LINK_NUMBER = 28;
 
 //Texture and UI Sound UUIDs
 key SOUND_OBTAIN = "93c7acbd-8201-85c4-e50d-2567507297c1";
@@ -295,18 +310,20 @@ RefreshHUD()
     }
     
     llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
-        PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD)]);    
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(SHOW_LATEST_TOKEN),
+        PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_LATEST_TOKEN)]);    
     
     llSetLinkPrimitiveParamsFast(RESET_BUTTON_LINK_NUMBER, [
-        PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(SHOW_RESET),    
+        PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_RESET)]);
 
     llSetLinkPrimitiveParamsFast(VISIBILITY_CONTROL_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
         PRIM_TEXT, visibilityText, <1.0, 1.0, 1.0>, 1.0]);    '
 
     llSetLinkPrimitiveParamsFast(LINK_ROOT, [
-        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
-        PRIM_TEXT, rootText, <1.0,1.0,1.0>, 1.0]);        
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, SHOW_TEXT_TOKEN_DISPLAY,
+        PRIM_TEXT, rootText, <1.0,1.0,1.0>, SHOW_TEXT_TOKEN_DISPLAY]);        
 
     llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
         PRIM_TEXT, "[Teleport to VSD Hubs]", <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
@@ -481,7 +498,7 @@ default
 
             llMapDestination(VSD_SIM_NAME, vsdDestination, ZERO_VECTOR);                
         }
-        else if(linkNumber == RESET_BUTTON_LINK_NUMBER & !hideHUD)
+        else if(linkNumber == RESET_BUTTON_LINK_NUMBER & !hideHUD & SHOW_RESET)
         {
             llResetScript();
         }
@@ -575,15 +592,25 @@ default
                         currentBGMclipIndex = tempCurrentBGMclipIndex;
                     }
                 }
-				else if (command == "RETURN_DIALOGUE_OPTION")
-				{
-					list npcParameterList = llParseString2List(parameter, ["***"], [""]);
-					currentNPC = llList2String(npcParameterList, TRIGGER_ID);
-					currentNPCtexture = llList2String(npcParameterList, NPC_TEXTURE);
-					currentDialogueOptions = llParseString2List(llList2String(npcParameterList, DIALOGUE_OPTIONS), ["###"], [""]);
-					
-					llOwnerSay("NPC: " + currentNPC + "\nOptions: " + llList2String(npcParameterList, DIALOGUE_OPTIONS));
-				}
+                else if (command == "RETURN_DIALOGUE_OPTION")
+                {
+                    list npcParameterList = llParseString2List(parameter, ["***"], [""]);
+                    
+                    llMessageLinked(NPC_LINK_NUMBER, SET_NPC, 
+                        llList2String(npcParameterList, TRIGGER_ID), "");
+                    llMessageLinked(NPC_LINK_NUMBER, SET_NPC_TEXTURE, 
+                        llList2String(npcParameterList, NPC_TEXTURE), "");
+                    llMessageLinked(NPC_LINK_NUMBER, SET_DIALOGUE, 
+                        llList2String(npcParameterList, DIALOGUE_OPTIONS), "");    
+                    llMessageLinked(NPC_LINK_NUMBER, SET_TIMEOUT, "", "");
+                }
+                else if (command == "NPC_TALK")
+                {
+                    list npcParameterList = llParseString2List(parameter, ["***"], [""]);                
+                    llMessageLinked(NPC_LINK_NUMBER, TALK, 
+                        llList2String(npcParameterList, 1), "");
+                    llMessageLinked(NPC_LINK_NUMBER, SET_TIMEOUT, "", "");
+                }
             }
         }
     }
@@ -726,7 +753,6 @@ state play_ping
         }
         else
         {
-            
             state default;
         }
         
