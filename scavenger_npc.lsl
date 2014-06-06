@@ -3,8 +3,6 @@ integer TALK = 0;
 integer GIVE = 1;
 
 /*v### NPC Settings - Make Changes Below ###v*/
-
-/***PLEASE DO NOT USE ANY COMMA IN ANY VARIABLES BELOW, I WILL FIX IT SOON***/
 string TRIGGER_ID = "Ruby"; //NPC Name
 string GREETINGS = "Hi! Welcome to Courtesy VSD Scavenger Hunt! How may I help you?";
 string DIALOGUE_OPTION_A = "Who are you?";
