@@ -3,8 +3,11 @@ integer PING_TIME = 10;
 float MINIMUM_PING_INTERVAL = 0.5;
 
 integer SHOW_TEXT_TOKEN_DISPLAY = FALSE;
+integer SHOW_TEXT_BGM = FALSE;
+integer SHOW_TEXT_VISIBILITY_TOGGLE = FALSE;
+integer SHOW_TEXT_HINT_TOGGLE = FALSE;
 integer SHOW_LATEST_TOKEN = FALSE;
-integer SHOW_RESET = TRUE;
+integer SHOW_RESET = FALSE;
 
 //Global Constants
 string SEPERATOR = "|||";
@@ -55,6 +58,7 @@ key SOUND_OBTAIN = "93c7acbd-8201-85c4-e50d-2567507297c1";
 key SOUND_DEACTIVATED = "a692d9f3-e328-7877-6c2e-18a55c87994e";
 key SOUND_PING = "c74e854f-7ab8-e27b-359b-2052be1c2dfb";
 key VSD_TEXTURE = "cd582a07-ce99-6282-3de0-8678d7d732b6";
+key PANEL_TEXTURE = "55ec1db4-6479-29e0-6be8-780d9c7eb1a9";
 //Menu Texture
 key ON_TEXTURE = "f54f4eac-b476-e465-9237-baba290b458a";
 key OFF_TEXTURE = "8b12b444-8687-a208-b1f8-4e45a41ced08";
@@ -262,35 +266,37 @@ ResetHUD()
 
 RefreshBGMcontrol()
 {
-    if(!hideHUD)
-    {
-        string bgmPrompt = "[Turn Off Music]";
-        string bgmTexture = OFF_TEXTURE;
-        
-        if(!playBGM)
-        {
-            bgmPrompt = "[Turn On Music]";    
-            bgmTexture = ON_TEXTURE;
-        }     
+	string bgmPrompt = "[Turn Off Music]";
+	string bgmTexture = OFF_TEXTURE;
+	
+	if(!playBGM)
+	{
+		bgmPrompt = "[Turn On Music]";    
+		bgmTexture = ON_TEXTURE;
+	}     
 
-        string bgmDisplay = "No Music Currently Playing";
-        
-        if(currentBGM != "")
-        {
-            bgmDisplay = currentBGMdisplay;
-        }
-        
-        llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
-            PRIM_TEXTURE, HUD_FRONT_FACE, bgmTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,    
-            PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, 1.0]);          
-    }        
+	string bgmDisplay = "No Music Currently Playing";
+	
+	if(currentBGM != "")
+	{
+		bgmDisplay = currentBGMdisplay;
+	}
+	
+	rotation bgmControlRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(hideHUD)> * DEG_TO_RAD);
+	
+	llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
+		PRIM_TEXTURE, HUD_FRONT_FACE, bgmTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,    
+		PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, (float)(SHOW_TEXT_BGM * !hideHUD),
+		PRIM_ROT_LOCAL, bgmControlRotation]);                 
 }
 
 RefreshHUD()
 {   
+	rotation linkRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!hideHUD)> * DEG_TO_RAD);
+	
     llSetLinkPrimitiveParamsFast(LINK_SET, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD),
-        PRIM_TEXTURE, HUD_FRONT_FACE, TEXTURE_BLANK, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, (float)(!hideHUD),        
+        PRIM_TEXTURE, HUD_FRONT_FACE, PANEL_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0, 
         PRIM_TEXT, "", <1.0, 1.0, 1.0>, 0.0]); 
 
     integer count = llGetListLength(tokenList);        
@@ -298,7 +304,7 @@ RefreshHUD()
     string latestTokenText = "No Latest Token";
     string visibilityText = "[Show HUD]";
     key visibilityTexture = SHOW_TEXTURE;
-    
+	
     if(count != 0)
     {
         string latestTokenName = llList2String(tokenList, count - 1);
@@ -334,30 +340,31 @@ RefreshHUD()
         visibilityTexture = HIDE_TEXTURE;        
     }
     
+	rotation latestTokenRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!(!hideHUD && SHOW_LATEST_TOKEN))> * DEG_TO_RAD);
+	rotation resetRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!(!hideHUD && SHOW_RESET))> * DEG_TO_RAD);
+	
     llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
-        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(SHOW_LATEST_TOKEN),
-        PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_LATEST_TOKEN)]);  
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_LATEST_TOKEN),
+        PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_LATEST_TOKEN),
+		PRIM_ROT_LOCAL, latestTokenRotation]);  
     llSetLinkPrimitiveParamsFast(RESET_BUTTON_LINK_NUMBER, [
-        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_RESET),  
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_RESET),  
         PRIM_TEXTURE, HUD_FRONT_FACE, RESET_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,            
-        PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD * SHOW_RESET)]);
-
+        PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_RESET),
+		PRIM_ROT_LOCAL, resetRotation]);
     llSetLinkPrimitiveParamsFast(VISIBILITY_CONTROL_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
         PRIM_TEXTURE, HUD_FRONT_FACE, visibilityTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,
-        PRIM_TEXT, visibilityText, <1.0, 1.0, 1.0>, 1.0]);    '
-
+        PRIM_TEXT, visibilityText, <1.0, 1.0, 1.0>, (float)(SHOW_TEXT_VISIBILITY_TOGGLE)]);
     llSetLinkPrimitiveParamsFast(LINK_ROOT, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, SHOW_TEXT_TOKEN_DISPLAY,
-        PRIM_TEXT, rootText, <1.0,1.0,1.0>, SHOW_TEXT_TOKEN_DISPLAY]);        
-
+        PRIM_TEXT, rootText, <1.0,1.0,1.0>, (float)(SHOW_TEXT_TOKEN_DISPLAY)]);        
     llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
         PRIM_TEXT, rootText, <1.0, 1.0, 1.0>, (float)(!hideHUD)]);     
-
     llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,  
         PRIM_TEXTURE, HUD_FRONT_FACE, HINT_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,        
-        PRIM_TEXT, "[Activate Hint]", <1.0, 1.0, 1.0>, 1.0]);            
+        PRIM_TEXT, "[Activate Hint]", <1.0, 1.0, 1.0>, (float)(SHOW_TEXT_HINT_TOGGLE)]);            
     
     RefreshBGMcontrol();
     RefreshNPC();
@@ -555,14 +562,7 @@ default
         }
         else if(linkNumber == VISIBILITY_CONTROL_LINK_NUMBER)
         {
-            if(hideHUD)
-            {
-                hideHUD = FALSE;
-            }
-            else
-            {
-                hideHUD = TRUE;
-            }
+			hideHUD = !hideHUD;
             
             RefreshHUD();
         }
@@ -627,6 +627,10 @@ default
                     llOwnerSay("Checking for " + parameter + " token...");
                     ReturnTokenCheck(parameter);    
                 }
+				else if(command == "HUD_SAY")
+				{
+					llOwnerSay(parameter);
+				}
                 else if(command == "RESET")
                 {
                     ResetHUD();   

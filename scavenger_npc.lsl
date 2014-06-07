@@ -8,6 +8,9 @@ string GREETINGS = "Hi! Welcome to Courtesy VSD Scavenger Hunt! How may I help y
 string DIALOGUE_OPTION_A = "Who are you?";
 string DIALOGUE_OPTION_B = "Have you seen any broken mill parts around here?";
 string DIALOGUE_OPTION_C = "Where can get more information?";
+string ITEM_OPTION_A = "NO_ITEM";
+string ITEM_OPTION_B = "NO_ITEM";
+string ITEM_OPTION_C = "NO_ITEM";
 string REPLY_A = "My name is Ruby. I take care of this HUB! Please make yourself at home.";
 string REPLY_B = "I think I saw something flew from the sky just a few moments ago.";
 string REPLY_C = "Ask people around the terminal. They should be able to give you more information.";
@@ -23,6 +26,7 @@ string SEPERATOR = "|||";
 list DIALOGUE_OPTIONS = [DIALOGUE_OPTION_A, DIALOGUE_OPTION_B, DIALOGUE_OPTION_C];
 list ACTION_OPTIONS = [ACTION_OPTION_A, ACTION_OPTION_B, ACTION_OPTION_C]; 
 list REPLY_OPTIONS = [REPLY_A, REPLY_B, REPLY_C]; 
+list ITEM_OPTIONS = [ITEM_A, ITEM_B, ITEM_C];
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -55,17 +59,15 @@ ReturnAction(key avatarKey, integer dialogueIndex)
     string timeStamp = llGetTimestamp();    
     string command = "NPC_TALK";
     string parameter = TRIGGER_ID;
+    string item = llList2String(ITEM_OPTIONS, dialogueIndex);
     
-    if(action == TALK)
+	if(action == GIVE && llGetInventoryKey(item) != NULL_KEY)
     {
-        string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
-        parameter = TRIGGER_ID + "***" + reply;
+        llGiveInventory(avatarKey, item);
     }
-    else if(action == GIVE)
-    {
-        
-    }
-
+	
+	string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
+	parameter = TRIGGER_ID + "***" + reply;
     string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + (string)avatarKey);  
     
     llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);      
@@ -75,7 +77,7 @@ default
 {
     state_entry()
     {
-        llSetText(FLOATING_TEXT, <1.0, 1.0, 1.0>, 1.0);
+        llSetText("NPC: " + TRIGGER_ID + "\n" + FLOATING_TEXT, <1.0, 1.0, 1.0>, 1.0);
         llListenRemove(listenHandle);    
         listenHandle = llListen(SCAVENGER_OBJECT_CHANNEL, "", "", "");
     }

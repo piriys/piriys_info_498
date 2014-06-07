@@ -50,24 +50,28 @@ string Dexor(string data, string xorKey)
 RefreshNPC()
 {
     integer index = NPC_LINK_NUMBER;
+    rotation inactiveRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!activeNPC)> * DEG_TO_RAD);    
     
     llSetLinkPrimitiveParamsFast(index, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),    
         PRIM_TEXT, "[NPC]\n" + currentNPC, <1.0, 1.0, 1.0>, (float)(activeNPC),
-        PRIM_TEXTURE, HUD_FRONT_FACE, (string)currentNPCtexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0]);        
+        PRIM_TEXTURE, HUD_FRONT_FACE, (string)currentNPCtexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,
+        PRIM_ROT_LOCAL, inactiveRotation]);        
         
     for(index = CHOICE_A_LINK_NUMBER; index <= CHOICE_C_LINK_NUMBER; index++)
     {
         llSetLinkPrimitiveParamsFast(index, [
             PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),   
             PRIM_TEXTURE, HUD_FRONT_FACE, llList2Key(CHOICES_TEXTURE, index - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,                 
-            PRIM_TEXT, llList2String(currentDialogueOptions, index - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 1.0>, (float)(activeNPC)]);    
+            PRIM_TEXT, llList2String(currentDialogueOptions, index - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 1.0>, (float)(activeNPC),
+            PRIM_ROT_LOCAL, inactiveRotation]);    
     }  
 
     llSetLinkPrimitiveParamsFast(index, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),    
         PRIM_TEXTURE, HUD_FRONT_FACE, llList2Key(CHOICES_TEXTURE, CHOICE_D_LINK_NUMBER - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,             
-        PRIM_TEXT, "[Leave] See You.", <1.0, 1.0, 1.0>, (float)(activeNPC)]);       
+        PRIM_TEXT, "[Leave] See You.", <1.0, 1.0, 1.0>, (float)(activeNPC),
+        PRIM_ROT_LOCAL, inactiveRotation]);       
 }
 
 default
