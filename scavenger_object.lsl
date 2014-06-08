@@ -102,7 +102,11 @@ default
             if(command == "REQUEST_PING" & ENABLE_PING)
             {
                 ReturnPing((key)triggerID);
-            }            
+            } 
+			else if(command == "ACTIVATE")
+			{
+				state activated;
+			}
         }
     } 
 }
