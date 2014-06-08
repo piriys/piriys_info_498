@@ -3,21 +3,21 @@ integer TALK = 0;
 integer GIVE = 1;
 
 /*v### NPC Settings - Make Changes Below ###v*/
-string TRIGGER_ID = "Ruby"; //NPC Name
+string TRIGGER_ID = "Lisette"; //NPC Name
 string GREETINGS = "Hi! Welcome to Courtesy VSD Scavenger Hunt! How may I help you?";
 string DIALOGUE_OPTION_A = "Who are you?";
 string DIALOGUE_OPTION_B = "Have you seen any broken mill parts around here?";
-string DIALOGUE_OPTION_C = "Where can get more information?";
+string DIALOGUE_OPTION_C = "Can I get an information notecard?";
 string ITEM_OPTION_A = "NO_ITEM";
 string ITEM_OPTION_B = "NO_ITEM";
-string ITEM_OPTION_C = "NO_ITEM";
-string REPLY_A = "My name is Ruby. I take care of this HUB! Please make yourself at home.";
+string ITEM_OPTION_C = "Scavenger Hunt Information";
+string REPLY_A = "My name is Lisette. I take care of this VSD hub! Please make yourself at home.";
 string REPLY_B = "I think I saw something flew from the sky just a few moments ago.";
-string REPLY_C = "Ask people around the terminal. They should be able to give you more information.";
+string REPLY_C = "Here you go!";
 integer ACTION_OPTION_A = TALK;
 integer ACTION_OPTION_B = TALK;
-integer ACTION_OPTION_C = TALK;
-key NPC_TEXTURE = "aa537522-6b0d-0b82-309f-b63a11040717"; //Texture UUID
+integer ACTION_OPTION_C = GIVE;
+key NPC_TEXTURE = "a27c6a99-ff74-f517-4fcf-5930eff3e655"; //Texture UUID
 string FLOATING_TEXT = "[Wear HUD and click to interact with this NPC]";
 /*^### NPC Settings- Make Changes Above ###^*/
 
@@ -26,7 +26,7 @@ string SEPERATOR = "|||";
 list DIALOGUE_OPTIONS = [DIALOGUE_OPTION_A, DIALOGUE_OPTION_B, DIALOGUE_OPTION_C];
 list ACTION_OPTIONS = [ACTION_OPTION_A, ACTION_OPTION_B, ACTION_OPTION_C]; 
 list REPLY_OPTIONS = [REPLY_A, REPLY_B, REPLY_C]; 
-list ITEM_OPTIONS = [ITEM_A, ITEM_B, ITEM_C];
+list ITEM_OPTIONS = [ITEM_OPTION_A, ITEM_OPTION_B, ITEM_OPTION_C];
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
@@ -61,13 +61,13 @@ ReturnAction(key avatarKey, integer dialogueIndex)
     string parameter = TRIGGER_ID;
     string item = llList2String(ITEM_OPTIONS, dialogueIndex);
     
-	if(action == GIVE && llGetInventoryKey(item) != NULL_KEY)
+    if(action == GIVE)
     {
         llGiveInventory(avatarKey, item);
     }
-	
-	string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
-	parameter = TRIGGER_ID + "***" + reply;
+    
+    string reply = llList2String(REPLY_OPTIONS, dialogueIndex);
+    parameter = TRIGGER_ID + "***" + reply;
     string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + (string)avatarKey);  
     
     llSay(SCAVENGER_HUD_CHANNEL, xorParameterList);      
@@ -77,7 +77,7 @@ default
 {
     state_entry()
     {
-        llSetText("NPC: " + TRIGGER_ID + "\n" + FLOATING_TEXT, <1.0, 1.0, 1.0>, 1.0);
+        llSetText("[NPC] " + TRIGGER_ID + "\n" + FLOATING_TEXT, <1.0, 1.0, 1.0>, 1.0);
         llListenRemove(listenHandle);    
         listenHandle = llListen(SCAVENGER_OBJECT_CHANNEL, "", "", "");
     }

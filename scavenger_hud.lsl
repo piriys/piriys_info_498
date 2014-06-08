@@ -10,9 +10,11 @@ integer SHOW_LATEST_TOKEN = FALSE;
 integer SHOW_RESET = FALSE;
 
 //Global Constants
+string GAME_VERSION = "Beta 0.5.0";
 string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
+integer INTERNAL_CHANNEL = -4981;
 string XOR_KEY = "husky498uw!";
 integer HUD_FRONT_FACE = 1;
 string VSD_SIM_NAME = "UW iSchool";
@@ -38,6 +40,9 @@ integer TALK = 4;
 integer RESET_NPC = 5;
 integer CHOOSE_DIALOGUE = 6;
 integer REFRESH_NPC = 7;
+//Leaderboard Child Prim Script Commands
+integer SUBMIT_SCORE = 0;
+integer RESET_SCORE = 1;
 
 //Link Numbers    
 integer LAST_VSD_LINK_NUMBER = 17;
@@ -159,8 +164,12 @@ integer NPC_TEXTURE = 1;
 integer DIALOGUE_OPTIONS = 2;
 
 //Global Variables
-integer listenHandle = 0;
+integer externalListenHandle = 0;
+integer internalListenHandle = 0;
 list tokenList = [];
+integer startTime = 0;
+integer endTime = 0;
+integer decoyCount = 0;
 //Deactivate State Variables
 integer timerCounter = 1;
 //BGM Variables
@@ -190,6 +199,44 @@ string Xor(string data)
 string Dexor(string data) 
 {
     return llBase64ToString(llXorBase64(data, llStringToBase64(XOR_KEY + (string)llGetOwner())));
+}
+
+//Time Difference - Modded from Ugleh Ulrik's Script
+string ConvertUnixTime(integer timeDifference)
+{
+    list periods = ["second",
+        "minute",
+        "hour",
+        "day",
+        "week",
+        "month",
+        "year",
+        "decade"];
+ 
+    list lenghts = [1,
+        60,
+        3600,
+        86400,
+        604800,
+        2630880,
+        31570560,
+        315705600];
+ 
+    integer v = llGetListLength(lenghts) - 1;
+    integer no;
+ 
+    while((0 <= v) && (no = timeDifference/llList2Integer(lenghts, v) <= 1))
+        --v;
+ 
+    string output = llList2String(periods, v);
+    
+    integer ntime = timeDifference / llList2Integer(lenghts, llListFindList(periods, [output]));
+ 
+    if(no != 1)
+        output += "s";
+ 
+    output = (string)ntime + " "+ output;
+    return output;
 }
 
 //HUD Functions
@@ -261,39 +308,40 @@ ResetHUD()
     tokenList = [];
     RefreshHUD();
     ResetNPC();
+    ResetScore();
     llResetScript();
 }
 
 RefreshBGMcontrol()
 {
-	string bgmPrompt = "[Turn Off Music]";
-	string bgmTexture = OFF_TEXTURE;
-	
-	if(!playBGM)
-	{
-		bgmPrompt = "[Turn On Music]";    
-		bgmTexture = ON_TEXTURE;
-	}     
+    string bgmPrompt = "[Turn Off Music]";
+    string bgmTexture = OFF_TEXTURE;
+    
+    if(!playBGM)
+    {
+        bgmPrompt = "[Turn On Music]";    
+        bgmTexture = ON_TEXTURE;
+    }     
 
-	string bgmDisplay = "No Music Currently Playing";
-	
-	if(currentBGM != "")
-	{
-		bgmDisplay = currentBGMdisplay;
-	}
-	
-	rotation bgmControlRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(hideHUD)> * DEG_TO_RAD);
-	
-	llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
-		PRIM_TEXTURE, HUD_FRONT_FACE, bgmTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,    
-		PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, (float)(SHOW_TEXT_BGM * !hideHUD),
-		PRIM_ROT_LOCAL, bgmControlRotation]);                 
+    string bgmDisplay = "No Music Currently Playing";
+    
+    if(currentBGM != "")
+    {
+        bgmDisplay = currentBGMdisplay;
+    }
+    
+    rotation bgmControlRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(hideHUD)> * DEG_TO_RAD);
+    
+    llSetLinkPrimitiveParamsFast(BGM_CONTROL_LINK_NUMBER, [
+        PRIM_TEXTURE, HUD_FRONT_FACE, bgmTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,    
+        PRIM_TEXT, bgmDisplay + "\n" + bgmPrompt, <1.0, 1.0, 1.0>, (float)(SHOW_TEXT_BGM * !hideHUD),
+        PRIM_ROT_LOCAL, bgmControlRotation]);                 
 }
 
 RefreshHUD()
 {   
-	rotation linkRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!hideHUD)> * DEG_TO_RAD);
-	
+    rotation linkRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!hideHUD)> * DEG_TO_RAD);
+    
     llSetLinkPrimitiveParamsFast(LINK_SET, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD),
         PRIM_TEXTURE, HUD_FRONT_FACE, PANEL_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0, 
@@ -304,7 +352,7 @@ RefreshHUD()
     string latestTokenText = "No Latest Token";
     string visibilityText = "[Show HUD]";
     key visibilityTexture = SHOW_TEXTURE;
-	
+    
     if(count != 0)
     {
         string latestTokenName = llList2String(tokenList, count - 1);
@@ -315,7 +363,7 @@ RefreshHUD()
         ChangeVsdTexture(latestVsdIndex, LATEST_TOKEN_DISPLAY_LINK_NUMBER);
             
         integer index = 0;    
-        for(index = 0; index < count & index < 5; index++)
+        for(index = 0; index < count; index++)
         {
             string tokenName = llList2String(tokenList, index);
             integer vsdIndex = llListFindList(VSD_LIST, [tokenName]);
@@ -325,7 +373,10 @@ RefreshHUD()
                 ChangeVsdTexture(vsdIndex, vsdIndex + 2);
             }
             
-            rootText = rootText + "\n[" + tokenName + "]";
+            if(index <= 5)
+            {
+                rootText = rootText + "\n[" + tokenName + "]";
+            }
         }   
         
         if(count > 5)
@@ -340,18 +391,18 @@ RefreshHUD()
         visibilityTexture = HIDE_TEXTURE;        
     }
     
-	rotation latestTokenRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!(!hideHUD && SHOW_LATEST_TOKEN))> * DEG_TO_RAD);
-	rotation resetRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!(!hideHUD && SHOW_RESET))> * DEG_TO_RAD);
-	
+    rotation latestTokenRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!(!hideHUD && SHOW_LATEST_TOKEN))> * DEG_TO_RAD);
+    rotation resetRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!(!hideHUD && SHOW_RESET))> * DEG_TO_RAD);
+    
     llSetLinkPrimitiveParamsFast(LATEST_TOKEN_DISPLAY_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_LATEST_TOKEN),
         PRIM_TEXT, latestTokenText, <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_LATEST_TOKEN),
-		PRIM_ROT_LOCAL, latestTokenRotation]);  
+        PRIM_ROT_LOCAL, latestTokenRotation]);  
     llSetLinkPrimitiveParamsFast(RESET_BUTTON_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_RESET),  
         PRIM_TEXTURE, HUD_FRONT_FACE, RESET_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,            
         PRIM_TEXT, "[Reset HUD]", <1.0, 1.0, 1.0>, (float)(!hideHUD && SHOW_RESET),
-		PRIM_ROT_LOCAL, resetRotation]);
+        PRIM_ROT_LOCAL, resetRotation]);
     llSetLinkPrimitiveParamsFast(VISIBILITY_CONTROL_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, 1.0,
         PRIM_TEXTURE, HUD_FRONT_FACE, visibilityTexture, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,
@@ -390,10 +441,29 @@ integer AddToken(string name)
     {
         if(itemIndex == -1)
         {
+            integer count = llGetListLength(tokenList);
+            
+            if(count == 0)
+            {
+                startTime = llGetUnixTime();
+            }
+            
             tokenList += name; 
             llOwnerSay("You obtained " + name + " token.");
             llTriggerSound(SOUND_OBTAIN, 1.0);
-            //llSay(DEBUG_CHANNEL, llGetDisplayName(llGetOwner()) + " obtained " + name + " token.");
+            
+            count = llGetListLength(tokenList);
+
+            if(count == llGetListLength(VSD_LIST))
+            {
+                SHOW_RESET = TRUE;
+                endTime = llGetUnixTime();  
+				llOwnerSay("Congratulations! You finished the game in " + ConvertUnixTime(endTime - startTime) + ".");
+                llListenRemove(INTERNAL_CHANNEL);
+                internalListenHandle = llListen(INTERNAL_CHANNEL, "", "", "");                
+                llDialog(llGetOwner(), "Submit score to web?", ["Yes", "No"], INTERNAL_CHANNEL);
+            }
+            
             RefreshHUD();
         }
         else
@@ -404,6 +474,7 @@ integer AddToken(string name)
     }
     else
     {
+        decoyCount++;
         llOwnerSay("Invalid token obtained.");     
         return FALSE;     
     }
@@ -477,6 +548,16 @@ ResetNPC()
     llMessageLinked(NPC_LINK_NUMBER, RESET_NPC, "", "");    
 }
 
+SubmitScore(integer time)
+{
+    llMessageLinked(VSD_GROUP_BACKGROUND_LINK_NUMBER, SUBMIT_SCORE, GAME_VERSION + SEPERATOR + (string)time + SEPERATOR + (string)decoyCount, "");    
+}
+
+ResetScore()
+{
+    llMessageLinked(VSD_GROUP_BACKGROUND_LINK_NUMBER, RESET_SCORE, "", "");  
+}
+
 default
 {   
     on_rez(integer start_param)
@@ -513,8 +594,9 @@ default
         llSetTimerEvent(0.0);          
         RefreshHUD();
         ChangeBGM(currentBGM);
-        llListenRemove(listenHandle);          
-        listenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");
+        llListenRemove(externalListenHandle);        
+        llListenRemove(internalListenHandle);            
+        externalListenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");
     }
     
     state_exit()
@@ -524,7 +606,8 @@ default
             currentBGMclipIndex = -1;
         }
         
-        llListenRemove(listenHandle);   
+        llListenRemove(externalListenHandle);   
+        llListenRemove(internalListenHandle);         
     }
     
     touch_end(integer num_detected)
@@ -562,7 +645,7 @@ default
         }
         else if(linkNumber == VISIBILITY_CONTROL_LINK_NUMBER)
         {
-			hideHUD = !hideHUD;
+            hideHUD = !hideHUD;
             
             RefreshHUD();
         }
@@ -590,84 +673,95 @@ default
     
     listen(integer channel, string name, key id, string message)
     {
-        list parameterList = llParseString2List(Dexor(message), [SEPERATOR], [""]);
-        
-        //For Debugging
-        //llOwnerSay(Dexor(message));
-        
-        if(llGetListLength(parameterList) == 4)
+        if(channel == INTERNAL_CHANNEL)
         {
-            //For Debugging
-            //llOwnerSay("Correct Parameter.");
-            
-            string timeStamp = llList2Key(parameterList, TIME_STAMP);        
-            key avatarKey = llList2Key(parameterList, AVATAR_KEY);
-            string command = llList2String(parameterList, COMMAND);
-            string parameter = llList2String(parameterList, PARAMETER);
-            
-            if(avatarKey == llGetOwner())
+            if(message == "Yes" & llGetListLength(tokenList) == llGetListLength(VSD_LIST))
             {
-                if(command == "ADD_TOKEN")
+                llListenRemove(INTERNAL_CHANNEL);                
+                SubmitScore(endTime - startTime);                
+            }
+        }
+        else
+        {
+            list parameterList = llParseString2List(Dexor(message), [SEPERATOR], [""]);
+            
+            //For Debugging
+            //llOwnerSay(Dexor(message));
+            
+            if(llGetListLength(parameterList) == 4)
+            {
+                //For Debugging
+                //llOwnerSay("Correct Parameter.");
+                
+                string timeStamp = llList2Key(parameterList, TIME_STAMP);        
+                key avatarKey = llList2Key(parameterList, AVATAR_KEY);
+                string command = llList2String(parameterList, COMMAND);
+                string parameter = llList2String(parameterList, PARAMETER);
+                
+                if(avatarKey == llGetOwner())
                 {
-                    if(!AddToken(parameter))
+                    if(command == "ADD_TOKEN")
+                    {
+                        if(!AddToken(parameter))
+                        {
+                            state deactivated;   
+                        }
+                    }
+                    else if(command == "REMOVE_TOKEN")
+                    {
+                        RemoveToken(parameter);
+                    }
+                    else if(command == "REQUEST_TOKEN_LIST")
+                    {
+                        ReturnTokenList();
+                    }
+                    else if(command == "REQUEST_TOKEN_CHECK")
+                    {
+                        llOwnerSay("Checking for " + parameter + " token...");
+                        ReturnTokenCheck(parameter);    
+                    }
+                    else if(command == "HUD_SAY")
+                    {
+                    
+                    }
+                    else if(command == "RESET")
+                    {
+                        ResetHUD();   
+                    }
+                    else if(command == "DEACTIVATE")
                     {
                         state deactivated;   
                     }
-                }
-                else if(command == "REMOVE_TOKEN")
-                {
-                    RemoveToken(parameter);
-                }
-                else if(command == "REQUEST_TOKEN_LIST")
-                {
-                    ReturnTokenList();
-                }
-                else if(command == "REQUEST_TOKEN_CHECK")
-                {
-                    llOwnerSay("Checking for " + parameter + " token...");
-                    ReturnTokenCheck(parameter);    
-                }
-				else if(command == "HUD_SAY")
-				{
-					llOwnerSay(parameter);
-				}
-                else if(command == "RESET")
-                {
-                    ResetHUD();   
-                }
-                else if(command == "DEACTIVATE")
-                {
-                    state deactivated;   
-                }
-                else if(command == "CHANGE_BGM")
-                {
-                    integer tempCurrentBGMclipIndex = currentBGMclipIndex;  
-                    
-                    ChangeBGM(parameter);
-                    
-                    if(tempCurrentBGMclipIndex == -1)
+                    else if(command == "CHANGE_BGM")
                     {
-                        currentBGMclipIndex = tempCurrentBGMclipIndex;
+                        integer tempCurrentBGMclipIndex = currentBGMclipIndex;  
+                        
+                        ChangeBGM(parameter);
+                        
+                        if(tempCurrentBGMclipIndex == -1)
+                        {
+                            currentBGMclipIndex = tempCurrentBGMclipIndex;
+                        }
                     }
-                }
-                else if (command == "RETURN_DIALOGUE_OPTION")
-                {
-                    list npcParameterList = llParseString2List(parameter, ["***"], [""]);
-                    
-                    llMessageLinked(NPC_LINK_NUMBER, SET_NPC, 
-                        llList2String(npcParameterList, TRIGGER_ID), "");
-                    llMessageLinked(NPC_LINK_NUMBER, SET_NPC_TEXTURE, 
-                        llList2String(npcParameterList, NPC_TEXTURE), "");
-                    llMessageLinked(NPC_LINK_NUMBER, SET_DIALOGUE, 
-                        llList2String(npcParameterList, DIALOGUE_OPTIONS), "");    
-                    llMessageLinked(NPC_LINK_NUMBER, SET_TIMEOUT, "", "");
-                }
-                else if (command == "NPC_TALK")
-                {
-                    list npcParameterList = llParseString2List(parameter, ["***"], [""]);                
-                    llMessageLinked(NPC_LINK_NUMBER, TALK, 
-                        llList2String(npcParameterList, 1), "");
-                    llMessageLinked(NPC_LINK_NUMBER, SET_TIMEOUT, "", "");
+                    else if (command == "RETURN_DIALOGUE_OPTION")
+                    {
+                        list npcParameterList = llParseString2List(parameter, ["***"], [""]);
+                        
+                        llMessageLinked(NPC_LINK_NUMBER, SET_NPC, 
+                            llList2String(npcParameterList, TRIGGER_ID), "");
+                        llMessageLinked(NPC_LINK_NUMBER, SET_NPC_TEXTURE, 
+                            llList2String(npcParameterList, NPC_TEXTURE), "");
+                        llMessageLinked(NPC_LINK_NUMBER, SET_DIALOGUE, 
+                            llList2String(npcParameterList, DIALOGUE_OPTIONS), "");    
+                        llMessageLinked(NPC_LINK_NUMBER, SET_TIMEOUT, "", "");
+                    }
+                    else if (command == "NPC_TALK")
+                    {
+                        list npcParameterList = llParseString2List(parameter, ["***"], [""]);                
+                        llMessageLinked(NPC_LINK_NUMBER, TALK, 
+                            llList2String(npcParameterList, 1), "");
+                        llMessageLinked(NPC_LINK_NUMBER, SET_TIMEOUT, "", "");
+                    }
                 }
             }
         }
@@ -719,8 +813,8 @@ state initialize_ping
         llSetLinkPrimitiveParamsFast(PING_LINK_NUMBER, [
             PRIM_TEXT, "[Searching for Hint...]", <1.0, 1.0, 0.0>, 1.0]);      
           
-        llListenRemove(listenHandle);          
-        listenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");    
+        llListenRemove(externalListenHandle);          
+        externalListenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");    
         
         RequestPing();
         llSetTimerEvent(2.0); 
@@ -728,7 +822,7 @@ state initialize_ping
     
     state_exit()
     {
-        llListenRemove(listenHandle);        
+        llListenRemove(externalListenHandle);        
     }
     
     listen(integer channel, string name, key id, string message)
