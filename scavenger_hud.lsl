@@ -10,7 +10,7 @@ integer SHOW_LATEST_TOKEN = FALSE;
 integer SHOW_RESET = FALSE;
 
 //Global Constants
-string GAME_VERSION = "Beta 0.5.0";
+string GAME_VERSION = "Beta 0.7.5";
 string SEPERATOR = "|||";
 integer SCAVENGER_HUD_CHANNEL = -498; 
 integer SCAVENGER_OBJECT_CHANNEL = 498;
@@ -373,7 +373,7 @@ RefreshHUD()
                 ChangeVsdTexture(vsdIndex, vsdIndex + 2);
             }
             
-            if(index <= 5)
+            if(index < 5)
             {
                 rootText = rootText + "\n[" + tokenName + "]";
             }
@@ -458,7 +458,7 @@ integer AddToken(string name)
             {
                 SHOW_RESET = TRUE;
                 endTime = llGetUnixTime();  
-				llOwnerSay("Congratulations! You finished the game in " + ConvertUnixTime(endTime - startTime) + ".");
+                llOwnerSay("Congratulations! You finished the game in " + ConvertUnixTime(endTime - startTime) + ".");
                 llListenRemove(INTERNAL_CHANNEL);
                 internalListenHandle = llListen(INTERNAL_CHANNEL, "", "", "");                
                 llDialog(llGetOwner(), "Submit score to web?", ["Yes", "No"], INTERNAL_CHANNEL);
