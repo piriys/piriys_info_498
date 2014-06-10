@@ -39,12 +39,45 @@ string Dexor(string data, string xorKey)
      return llBase64ToString(llXorBase64(data, llStringToBase64(xorKey)));
 }
 
+list ListItemDelete(list li,string element) {
+    integer placeinlist = llListFindList(li, [element]);
+    if (placeinlist != -1)
+        return llDeleteSubList(li, placeinlist, placeinlist);
+    return li;
+}
+
 default
 {
     state_entry()
     {
         llListenRemove(listenHandle);
         listenHandle = llListen(ATNM_GAME_CHANNEL, "", "", "");        
+    }
+    
+    touch_end(integer num_detected)
+    {
+        key avatarKey = llDetectedKey(0);
+        
+        llSay(0, "Overloading barrier...");
+        
+        if(llListFindList(itemAcollectors, [avatarKey]) != -1 &
+        llListFindList(itemBcollectors, [avatarKey]) != -1 &
+        llListFindList(itemCcollectors, [avatarKey]) != -1 &
+        llListFindList(itemDcollectors, [avatarKey]) != -1 &
+        llListFindList(itemEcollectors, [avatarKey]) != -1)
+        {  
+            llSay(ATNM_GAME_CHANNEL, "BARRIER_OFF");
+            
+            itemAcollectors = ListItemDelete(itemAcollectors, (string)avatarKey);
+            itemBcollectors = ListItemDelete(itemBcollectors, (string)avatarKey);    
+            itemCcollectors = ListItemDelete(itemCcollectors, (string)avatarKey);
+            itemDcollectors = ListItemDelete(itemDcollectors, (string)avatarKey);    
+            itemEcollectors = ListItemDelete(itemEcollectors, (string)avatarKey);                
+        } 
+		else
+		{
+			llSay(0, "Not enough energy to overload barrier, collect more forks!");
+		}
     }
     
     listen(integer channel, string name, key id, string message)
@@ -103,22 +136,7 @@ default
                 }                
             }    
             
-            if(llListFindList(itemAcollectors, [avatarKey]) != -1 &
-            llListFindList(itemBcollectors, [avatarKey]) != -1 &
-            llListFindList(itemCcollectors, [avatarKey]) != -1 &
-            llListFindList(itemDcollectors, [avatarKey]) != -1 &
-            llListFindList(itemEcollectors, [avatarKey]) != -1)
-            {
-                llSay(0, llKey2Name(avatarKey) + " collects all the forks and obtained Autonomy token!");
-                string timeStamp = llGetTimestamp();
-                key avatarKey = avatarKey;
-                string command = "ADD_TOKEN";
-                string parameter = TOKEN_NAME;
-                
-                string xorParameterList = Xor(timeStamp + SEPERATOR + (string)avatarKey + SEPERATOR + command + SEPERATOR + parameter, XOR_KEY + (string)avatarKey);
-                
-                llShout(SCAVENGER_HUD_CHANNEL, xorParameterList);    
-            }
+
         }
     }    
 }
