@@ -9,7 +9,7 @@ integer SHOW_TEXT_HINT_TOGGLE = FALSE;
 integer SHOW_LATEST_TOKEN = FALSE;
 integer SHOW_RESET = FALSE;
 
-float REZ_TIMEOUT = 20.0;
+float REZ_TIMEOUT = 30.0;
 
 //Global Constants
 string GAME_VERSION = "Beta 0.7.5";
@@ -66,13 +66,13 @@ key SOUND_DEACTIVATED = "a692d9f3-e328-7877-6c2e-18a55c87994e";
 key SOUND_PING = "c74e854f-7ab8-e27b-359b-2052be1c2dfb";
 key VSD_TEXTURE = "cd582a07-ce99-6282-3de0-8678d7d732b6";
 key BACKGROUND_TEXTURE = "b9905cf4-81a0-936c-4c31-e8e24ffcd9fc";
-key PANEL_TEXTURE = "55ec1db4-6479-29e0-6be8-780d9c7eb1a9";
+key PANEL_TEXTURE = "a807d28a-c7a4-d03a-f618-75a15a78a7b2";
 //Menu Texture
-key ON_TEXTURE = "e68f1b5e-c3eb-7e06-15be-f2910fa294b2";
-key OFF_TEXTURE = "5e50e558-7901-1127-5c53-5a1d8f8eadfd";
-key RESET_TEXTURE = "cfdff146-fc06-def0-638b-61df25d33d15";
-key SHOW_TEXTURE = "421f8847-454d-a382-a221-6e7d8b701a9c";
-key HIDE_TEXTURE = "fe02251c-789b-2383-c474-5f42c5b56f45";
+key OFF_TEXTURE = "e68f1b5e-c3eb-7e06-15be-f2910fa294b2";
+key ON_TEXTURE = "5e50e558-7901-1127-5c53-5a1d8f8eadfd";
+key RESET_TEXTURE = "d987a326-e4bd-53e6-3702-8ed3a3b5e7af";
+key HIDE_TEXTURE = "421f8847-454d-a382-a221-6e7d8b701a9c";
+key SHOW_TEXTURE = "fe02251c-789b-2383-c474-5f42c5b56f45";
 key HINT_TEXTURE = "e4ef99b1-ad54-3869-3ab1-a23580120dda";
 
 //BGM UUIDs
@@ -308,12 +308,39 @@ StopBGM()
 
 ResetHUD()
 {
-    llOwnerSay("Resetting HUD...");    
+    llOwnerSay("Resetting HUD...");  
+	SHOW_RESET = FALSE;
+    //Global Variables
+    externalListenHandle = 0;
+    internalListenHandle = 0;
     tokenList = [];
+    startTime = 0;
+    endTime = 0;
+    decoyCount = 0;
+    //Deactivate State Variables
+    timerCounter = 1;
+    //BGM Variables
+    currentBGM = "";
+    currentBGMdisplay = "";
+    currentBGMclipList = [];
+    currentBGMlength = 0.0;
+    currentBGMclipIndex = 0;
+    currentBGMclipCount = 0;
+    playBGM = TRUE;
+    //Ping Variables
+    distanceFromObject = 25.0;
+    pingCount = PING_TIME;
+    //Visibility Variables
+    hideHUD = FALSE;
+    //NPC Variables
+    currentNPC = "";
+    currentNPCtexture = TEXTURE_BLANK;
+    currentDialogueOptions = [];
+    currentVSDbuttonTexture = VSD_TEXTURE;
+    
     RefreshHUD();
     ResetNPC();
     ResetScore();
-    llResetScript();
 }
 
 RefreshBGMcontrol()
@@ -345,7 +372,7 @@ RefreshBGMcontrol()
 RefreshHUD()
 {   
     rotation linkRotation = llEuler2Rot(<0.0, 0.0, 90.0 * (float)(!hideHUD)> * DEG_TO_RAD);
-    
+
     llSetLinkPrimitiveParamsFast(LINK_SET, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD),
         PRIM_TEXTURE, HUD_FRONT_FACE, PANEL_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0, 
@@ -354,7 +381,8 @@ RefreshHUD()
     llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD),
         PRIM_TEXTURE, HUD_FRONT_FACE, BACKGROUND_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0]); 
-        
+
+            
     integer count = llGetListLength(tokenList);        
     string rootText = "No Token Obtained";
     string latestTokenText = "No Latest Token";
@@ -571,34 +599,66 @@ ResetScore()
 
 default
 {
-    on_rez(integer start_param)
+    attach(key id)
     {
-    
+        if(id)
+        {    
+            state ready;
+        }
     }
     
     state_entry()
-    {
-        //llSetTimerEvent(REZ_TIMEOUT);
-        state ready;
+    {        
+        llListenRemove(internalListenHandle);              
+        llSetTimerEvent(REZ_TIMEOUT);  
+        internalListenHandle = llListen(INTERNAL_CHANNEL, "", "", "");          
     }
+    
     state_exit()
     {
-        llSetTimerEvent(0.0);    
+        llListenRemove(internalListenHandle);       
+        llSetTimerEvent(0.0);
+    }
+    
+    listen(integer channel, string name, key id, string message)
+    { 
+        key avatarKey = (key)message;
+        llSay(PUBLIC_CHANNEL, "Requesting attach permission from " + (string)avatarKey);
+        
+        if(llKey2Name(avatarKey) != "")
+        {  
+            llRequestPermissions(avatarKey, PERMISSION_ATTACH);   
+            llListenRemove(internalListenHandle);     
+            llSetTimerEvent(REZ_TIMEOUT); 
+        }
     }
     
     timer()
     {
-        
+        llSay(PUBLIC_CHANNEL, "Permission to auto-attach not granted, deleting object...");
+        llSetTimerEvent(0.0);        
+        llDie();
     }
+    
+    run_time_permissions(integer perm)
+    {
+        if(perm & PERMISSION_ATTACH)
+        {
+            integer perm = llGetPermissions();
+            llSay(PUBLIC_CHANNEL, "Permission Granted: " + llKey2Name(llGetPermissionsKey()));        
+            llAttachToAvatarTemp(ATTACH_HUD_BOTTOM_LEFT);
+            state ready;
+        }
+    }    
 }
 
 state ready
-{   
-    on_rez(integer start_param)
-    {
-        llOwnerSay("Used Memory: " + (string)llGetUsedMemory() + "\nFree Memory: " +  (string)llGetFreeMemory());        
-    } 
-    
+{     
+	on_rez(integer start_param)
+	{
+		state default;
+	}
+	
     timer()
     {
         currentBGMclipIndex++;
@@ -624,13 +684,14 @@ state ready
     }
     
     state_entry()
-    {
+    {    
         llSetTimerEvent(0.0);          
         RefreshHUD();
         ChangeBGM(currentBGM);
         llListenRemove(externalListenHandle);        
         llListenRemove(internalListenHandle);            
         externalListenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");
+		llSay(PUBLIC_CHANNEL, "HUD Ready");
     }
     
     state_exit()
@@ -663,6 +724,7 @@ state ready
         else if(linkNumber == RESET_BUTTON_LINK_NUMBER & !hideHUD & SHOW_RESET)
         {
             ResetHUD();
+            state ready;
         }
         else if(linkNumber == BGM_CONTROL_LINK_NUMBER & !hideHUD)
         {    
@@ -830,7 +892,7 @@ state deactivated
         else
         {
             timerCounter = 1;
-            state default;            
+            state ready;            
         }
     }
 }
@@ -839,7 +901,7 @@ state initialize_ping
 {
     on_rez(integer start_param)
     {
-        state default;
+        state ready;
     }
     
     state_entry()
@@ -893,7 +955,7 @@ state play_ping
 {
     on_rez(integer start_param)
     {
-        state default;
+        state ready;
     }
     
     state_entry()
@@ -922,7 +984,7 @@ state play_ping
         else
         {
             llOwnerSay("No nearby object");
-            state default;
+            state ready;
         }
     }
     
@@ -939,7 +1001,7 @@ state play_ping
         }
         else
         {
-            state default;
+            state ready;
         }
         
         timerCounter++;
@@ -951,7 +1013,7 @@ state play_ping
         
         if(linkNumber == PING_LINK_NUMBER)
         {
-            state default;
+            state ready;
         }        
     }        
 }

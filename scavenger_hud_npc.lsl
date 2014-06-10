@@ -7,10 +7,10 @@ integer SCAVENGER_OBJECT_CHANNEL = 498;
 string XOR_KEY = "husky498uw!";
 list DIALOGUE_CHOICES = ["A", "B", "C"];
 list CHOICES_TEXTURE = [
-"f1ab51cb-fd52-b31a-2bd4-5a2f25fc6118",
-"30c8f002-373d-b0de-f4e7-359f56c334f7", 
-"26529d72-4fe0-5c03-6876-53eead6dda75",
-"edfd533b-f263-c8a3-01c0-6480aa95abc5"
+"74a13417-55a5-5a57-4f01-5798d8fa51ea",
+"b73a75eb-a726-a293-a7ba-77d8f943fd87", 
+"c42485a8-913e-760c-0444-db6e0d6e2e1a",
+"ced28e77-b092-22a6-fb31-9fae9390f6c3"
 ];
 integer HUD_FRONT_FACE = 1;
 
