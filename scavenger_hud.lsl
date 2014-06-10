@@ -9,6 +9,8 @@ integer SHOW_TEXT_HINT_TOGGLE = FALSE;
 integer SHOW_LATEST_TOKEN = FALSE;
 integer SHOW_RESET = FALSE;
 
+float REZ_TIMEOUT = 20.0;
+
 //Global Constants
 string GAME_VERSION = "Beta 0.7.5";
 string SEPERATOR = "|||";
@@ -63,14 +65,15 @@ key SOUND_OBTAIN = "93c7acbd-8201-85c4-e50d-2567507297c1";
 key SOUND_DEACTIVATED = "a692d9f3-e328-7877-6c2e-18a55c87994e";
 key SOUND_PING = "c74e854f-7ab8-e27b-359b-2052be1c2dfb";
 key VSD_TEXTURE = "cd582a07-ce99-6282-3de0-8678d7d732b6";
+key BACKGROUND_TEXTURE = "b9905cf4-81a0-936c-4c31-e8e24ffcd9fc";
 key PANEL_TEXTURE = "55ec1db4-6479-29e0-6be8-780d9c7eb1a9";
 //Menu Texture
-key ON_TEXTURE = "f54f4eac-b476-e465-9237-baba290b458a";
-key OFF_TEXTURE = "8b12b444-8687-a208-b1f8-4e45a41ced08";
+key ON_TEXTURE = "e68f1b5e-c3eb-7e06-15be-f2910fa294b2";
+key OFF_TEXTURE = "5e50e558-7901-1127-5c53-5a1d8f8eadfd";
 key RESET_TEXTURE = "cfdff146-fc06-def0-638b-61df25d33d15";
-key SHOW_TEXTURE = "7d1ef59b-2216-95ee-e288-889cac2b8532";
-key HIDE_TEXTURE = "8f8f4495-032a-4fd2-b396-c77e758ba497";
-key HINT_TEXTURE = "8d79ca15-c0ca-ff06-1730-f34ab38ec8d3";
+key SHOW_TEXTURE = "421f8847-454d-a382-a221-6e7d8b701a9c";
+key HIDE_TEXTURE = "fe02251c-789b-2383-c474-5f42c5b56f45";
+key HINT_TEXTURE = "e4ef99b1-ad54-3869-3ab1-a23580120dda";
 
 //BGM UUIDs
 list BGM_LIST = [
@@ -189,6 +192,7 @@ integer hideHUD = FALSE;
 string currentNPC = "";
 key currentNPCtexture = TEXTURE_BLANK;
 list currentDialogueOptions = [];
+key currentVSDbuttonTexture = VSD_TEXTURE;
 
 //Encode & Decode Functions (for security)
 string Xor(string data)
@@ -346,7 +350,11 @@ RefreshHUD()
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD),
         PRIM_TEXTURE, HUD_FRONT_FACE, PANEL_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0, 
         PRIM_TEXT, "", <1.0, 1.0, 1.0>, 0.0]); 
-
+    
+    llSetLinkPrimitiveParamsFast(VSD_GROUP_BACKGROUND_LINK_NUMBER, [
+        PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(!hideHUD),
+        PRIM_TEXTURE, HUD_FRONT_FACE, BACKGROUND_TEXTURE, <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0]); 
+        
     integer count = llGetListLength(tokenList);        
     string rootText = "No Token Obtained";
     string latestTokenText = "No Latest Token";
@@ -429,7 +437,7 @@ ChangeVsdTexture(integer vsdIndex, integer linkNumber)
     float yOffset = (3 - (row * 2))/8.0;      
     
     llSetLinkPrimitiveParamsFast(linkNumber, [
-    PRIM_TEXTURE, HUD_FRONT_FACE, VSD_TEXTURE, <1/4.0, 1/4.0, 1/4.0>, <xOffset, yOffset, 0.0>, 0]);
+    PRIM_TEXTURE, HUD_FRONT_FACE, currentVSDbuttonTexture, <1/4.0, 1/4.0, 1/4.0>, <xOffset, yOffset, 0.0>, 0]);
 }
 
 integer AddToken(string name)
@@ -459,6 +467,9 @@ integer AddToken(string name)
                 SHOW_RESET = TRUE;
                 endTime = llGetUnixTime();  
                 llOwnerSay("Congratulations! You finished the game in " + ConvertUnixTime(endTime - startTime) + ".");
+                          
+                currentVSDbuttonTexture = TEXTURE_TRANSPARENT;
+
                 llListenRemove(INTERNAL_CHANNEL);
                 internalListenHandle = llListen(INTERNAL_CHANNEL, "", "", "");                
                 llDialog(llGetOwner(), "Submit score to web?", ["Yes", "No"], INTERNAL_CHANNEL);
@@ -559,6 +570,29 @@ ResetScore()
 }
 
 default
+{
+    on_rez(integer start_param)
+    {
+    
+    }
+    
+    state_entry()
+    {
+        //llSetTimerEvent(REZ_TIMEOUT);
+        state ready;
+    }
+    state_exit()
+    {
+        llSetTimerEvent(0.0);    
+    }
+    
+    timer()
+    {
+        
+    }
+}
+
+state ready
 {   
     on_rez(integer start_param)
     {

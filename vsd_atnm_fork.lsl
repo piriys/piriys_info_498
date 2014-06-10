@@ -12,6 +12,6 @@ default
 	{
 		key avatarKey = llDetectedKey(0);
 		
-		llSay(ATNM_GAME_CHANNEL, (string)avatarKey + SEPERATOR + "ADD_FORK" + FORK_ID);
+		llSay(ATNM_GAME_CHANNEL, (string)avatarKey + SEPERATOR + "ADD_FORK" + SEPERATOR + FORK_ID);
 	}
 }

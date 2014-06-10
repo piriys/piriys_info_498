@@ -11,8 +11,6 @@ integer up = FALSE;
 list itemAcollectors = [];
 list itemBcollectors = [];
 list itemCcollectors = [];
-list itemDcollectors = [];
-list itemEcollectors = [];
 
 integer listenHandle = 0;
 
@@ -44,9 +42,7 @@ default
         key avatarKey = llDetectedKey(0);
         if(llListFindList(itemAcollectors, [avatarKey]) != -1 &
         llListFindList(itemBcollectors, [avatarKey]) != -1 &
-        llListFindList(itemCcollectors, [avatarKey]) != -1 &
-        llListFindList(itemDcollectors, [avatarKey]) != -1 &
-        llListFindList(itemEcollectors, [avatarKey]) != -1)
+        llListFindList(itemCcollectors, [avatarKey]) != -1)
         {  
             llSetStatus(STATUS_PHYSICS, TRUE);            
             if(!up & startPosition != ZERO_VECTOR)
@@ -83,7 +79,7 @@ default
         
         if(command == "ADD_STEPPER")
         {
-            llSay(0, llKey2Name(avatarKey) + " collected fork " + commandParameter + ".");
+            llSay(0, llKey2Name(avatarKey) + " activated switch " + commandParameter + ".");
             if(commandParameter == "A")
             {
                 integer index = llListFindList(itemAcollectors, [avatarKey]);
@@ -110,27 +106,11 @@ default
                 {
                     itemCcollectors = itemCcollectors + avatarKey;
                 }                
-            }        
-            else if(commandParameter == "D")
-            {
-                integer index = llListFindList(itemDcollectors, [avatarKey]);
-                
-                if(index == -1)
-                {
-                    itemDcollectors = itemDcollectors + avatarKey;
-                }            
             }
-            else if(commandParameter == "E")
-            {
-                integer index = llListFindList(itemEcollectors, [avatarKey]);
-                
-                if(index == -1)
-                {
-                    itemEcollectors = itemEcollectors + avatarKey;
-                }                
-            }    
             
-
+            /*llSay(0, "A: " + llDumpList2String(itemAcollectors, ",") +
+            "\nB: " + llDumpList2String(itemBcollectors, ",") + 
+            "\nC: " + llDumpList2String(itemCcollectors, ","));*/                              
         }
     }  
 }
