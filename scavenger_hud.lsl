@@ -1,5 +1,6 @@
 //Settings
 integer PING_TIME = 10;
+integer DEACTIVATE_TIME = 1;
 float MINIMUM_PING_INTERVAL = 0.5;
 
 integer SHOW_TEXT_TOKEN_DISPLAY = FALSE;
@@ -309,7 +310,7 @@ StopBGM()
 ResetHUD()
 {
     llOwnerSay("Resetting HUD...");  
-	SHOW_RESET = FALSE;
+    SHOW_RESET = FALSE;
     //Global Variables
     externalListenHandle = 0;
     internalListenHandle = 0;
@@ -623,7 +624,7 @@ default
     listen(integer channel, string name, key id, string message)
     { 
         key avatarKey = (key)message;
-        llSay(PUBLIC_CHANNEL, "Requesting attach permission from " + (string)avatarKey);
+        llSay(PUBLIC_CHANNEL, "Requesting attach permission from [" + llGetDisplayName(avatarKey) + "]. Please click [Yes] to accept.");
         
         if(llKey2Name(avatarKey) != "")
         {  
@@ -654,11 +655,11 @@ default
 
 state ready
 {     
-	on_rez(integer start_param)
-	{
-		state default;
-	}
-	
+    on_rez(integer start_param)
+    {
+        state default;
+    }
+    
     timer()
     {
         currentBGMclipIndex++;
@@ -691,7 +692,7 @@ state ready
         llListenRemove(externalListenHandle);        
         llListenRemove(internalListenHandle);            
         externalListenHandle = llListen(SCAVENGER_HUD_CHANNEL, "", "", "");
-		llSay(PUBLIC_CHANNEL, "HUD Ready");
+        llOwnerSay("HUD Activated");
     }
     
     state_exit()
@@ -818,7 +819,7 @@ state ready
                     }
                     else if(command == "HUD_SAY")
                     {
-						
+                    
                     }
                     else if(command == "RESET")
                     {
@@ -877,14 +878,14 @@ state deactivated
         //llOwnerSay("Play BGM Toggle: " + (string)playBGM + "\nCurrent Index: " + (string)currentBGMclipIndex);    
         llStopSound();
         timerCounter = 1;
-        llSetText("HUD Deactivated\nPlease Wait for\n5 seconds.", <1.0,0.0,0.0>, 1.0);
+        llSetText("HUD Deactivated\nPlease Wait for\n" + (string)DEACTIVATE_TIME + " seconds.", <1.0,0.0,0.0>, 1.0);
         llTriggerSound(SOUND_DEACTIVATED, 1.0);
         llSetTimerEvent(1.0);   
     }
     
     timer()
     {
-        if(timerCounter != 5)
+        if(timerCounter != DEACTIVATE_TIME)
         {
             llSetLinkPrimitiveParamsFast(LINK_ROOT, [PRIM_TEXT, "HUD Deactivated\nPlease Wait for\n" + (string)(5 - timerCounter) + " seconds.", <1.0,0.0,0.0>, 1.0]); 
             timerCounter++;            
