@@ -40,7 +40,7 @@ default
         llSetPrimitiveParams([
             PRIM_PHANTOM, FALSE,
             PRIM_GLOW, ALL_SIDES, 0.1,            
-            PRIM_COLOR, <0.153, 0.341, 0.153>, 0.66]);
+            PRIM_COLOR, ALL_SIDES, <0.153, 0.341, 0.153>, 0.66]);
         llSetAlpha(0.44, ALL_SIDES);
         llListenRemove(listenHandle);
         listenHandle = llListen(ATNM_GAME_CHANNEL, "", "", "");        
@@ -64,7 +64,7 @@ state off
         llSetPrimitiveParams([
             PRIM_PHANTOM, TRUE,
             PRIM_GLOW, ALL_SIDES, 0.0,
-            PRIM_COLOR, <0.153, 0.341, 0.153>, 0.0]);     
+            PRIM_COLOR, ALL_SIDES, <0.153, 0.341, 0.153>, 0.0]);     
         llSetAlpha(0.0, ALL_SIDES);
         llSetTimerEvent(TIMEOUT);
     }

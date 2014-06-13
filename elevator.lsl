@@ -1,33 +1,79 @@
-float RAISE_HEIGHT = 5.5;
-float DELAY_TIME = 5.0; //Inactive time in seconds
-/*^Make Changes to above numbers^*/
+/*v### Teleporter Settings - Make Changes Below ###v*/
+string PROMPT_TEXT = "Teleport back to Main Hub: Click on Prim"; //Hover text
+vector DEFAULT_DESTINATION = <148.00000, 95.00000, 3497.00000>;
+rotation ROTATION = ZERO_ROTATION;
+integer LOAD_LANDMARK = FALSE; //Set this to true if you want to load destination from landmark in object inventory instead
+float HEIGHT_OFFSET = 1.0; //Height offset for destination
+/*^### Teleporter Settings - Make Changes Above ###^*/
 
-vector startPosition = ZERO_VECTOR;
-integer up = FALSE;
+//Global Variables
+vector startPosition;
+vector destination; 
+key requestID;
+
+teleport(vector destination)
+{
+    if(llGetPos() != destination)
+    {
+        llSetRegionPos(destination);
+        teleport(destination);
+    }
+    else
+    {
+        llSleep(0.5);
+        llUnSit(llAvatarOnSitTarget());
+        llSetRegionPos(startPosition);
+    }
+}
 
 default
 {
+    on_rez(integer start_param)
+    {
+        llResetScript(); 
+    }
+    
     state_entry()
     {
-        llSetStatus(STATUS_ROTATE_X|STATUS_ROTATE_Y|STATUS_ROTATE_Z, FALSE);
-        startPosition = llGetPos();
-        llSetTimerEvent(0.0);   
-    }
-
-    touch(integer total_number)
-    {   
-        llSetStatus(STATUS_PHYSICS, TRUE);            
-        if(!up & startPosition != ZERO_VECTOR)
+        llSetText(PROMPT_TEXT, <1,1,1>, 1.0);
+        llSitTarget(<0.0, 0.0, 1.0>, ROTATION);        
+        startPosition = llGetPos();  
+        destination = DEFAULT_DESTINATION + <0.0, 0.0, HEIGHT_OFFSET>; 
+        
+        if(LOAD_LANDMARK)
         {
-            llMoveToTarget(startPosition + <0,0, RAISE_HEIGHT>, 1.5); 
-            up = TRUE;  
-            llSleep(DELAY_TIME);                 
+            if (llGetInventoryNumber(INVENTORY_LANDMARK) == 0)
+            {
+                llSay(0, "No Landmark found in inventory, destination set to default in script");
+                  
+            }
+            else
+            {
+                requestID = llRequestInventoryData(llGetInventoryName(INVENTORY_LANDMARK, 0));
+            }
         }
-        else
-        {                 
-            llMoveToTarget(startPosition, 1.5);
-            up = FALSE;  
-            llSleep(DELAY_TIME);                                
+    }
+    
+    dataserver(key query, string data)
+    {
+        if(requestID ==  query)
+        {
+            destination = (vector)data + <0.0, 0.0, HEIGHT_OFFSET>;
+        }  
+    }
+   
+    changed(integer change)
+    {
+        if(change & CHANGED_LINK)
+        {
+            if(llGetNumberOfPrims() > 1)
+            {
+                teleport(destination);
+            }
+        }
+        else if(change & CHANGED_INVENTORY)
+        {
+            llResetScript();   
         }
     }
 }

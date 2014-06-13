@@ -70,7 +70,7 @@ RefreshNPC()
     llSetLinkPrimitiveParamsFast(index, [
         PRIM_COLOR, HUD_FRONT_FACE, <1.0, 1.0, 1.0>, (float)(activeNPC),    
         PRIM_TEXTURE, HUD_FRONT_FACE, llList2Key(CHOICES_TEXTURE, CHOICE_D_LINK_NUMBER - CHOICE_A_LINK_NUMBER), <1.0, 1.0, 0.0>, <0.0, 0.0, 0.0>, 0.0,             
-        PRIM_TEXT, "[Leave].", <1.0, 1.0, 1.0>, (float)(activeNPC),
+        PRIM_TEXT, "[Leave]", <1.0, 1.0, 1.0>, (float)(activeNPC),
         PRIM_ROT_LOCAL, inactiveRotation]);       
 }
 
