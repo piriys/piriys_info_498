@@ -1,27 +1,34 @@
 /*v### Teleporter Settings - Make Changes Below ###v*/
-string PROMPT_TEXT = "Teleport to Monochrome Circle Classroom: Click on Prim"; //Hover text
-vector DEFAULT_DESTINATION = <180,90,3495.250>;
+integer DEFAULT_PRIM_COUNT = 1;
+string PROMPT_TEXT = ""; //Hover text
+vector DESTINATION = <147, 232, 21>;
+vector DEG_ROTATION = ZERO_VECTOR;
 integer LOAD_LANDMARK = FALSE; //Set this to true if you want to load destination from landmark in object inventory instead
-float HEIGHT_OFFSET = 1.0; //Height offset for destination
+float HEIGHT_OFFSET = 1.0; //Height offset for destination - Must not equal to 0
 /*^### Teleporter Settings - Make Changes Above ###^*/
 
 //Global Variables
 vector startPosition;
-vector destination; 
+rotation startRotation;
 key requestID;
 
-teleport(vector destination)
+teleport()
 {
-    if(llGetPos() != destination)
+    if(llGetPos() != DESTINATION)
     {
-        llSetRegionPos(destination);
-        teleport(destination);
+        rotation ROTATION = llEuler2Rot(DEG_ROTATION * DEG_TO_RAD);
+        //llOwnerSay("going to destination");
+        llSetRegionPos(DESTINATION);   
+        llSetRot(ROTATION);
+        llSleep(0.5);
+        //llOwnerSay("Unsitting " + llKey2Name(llAvatarOnSitTarget()));
+        llUnSit(llAvatarOnSitTarget());      
+        teleport();
     }
     else
-    {
-        llSleep(0.5);
-        llUnSit(llAvatarOnSitTarget());
+    {                
         llSetRegionPos(startPosition);
+        llSetRot(startRotation);       
     }
 }
 
@@ -35,9 +42,19 @@ default
     state_entry()
     {
         llSetText(PROMPT_TEXT, <1,1,1>, 1.0);
-        llSitTarget(<0.0, 0.0, 1.0>, ZERO_ROTATION);        
+		
+		if(HEIGHT_OFFSET == 0)
+		{
+			llOwnerSay("Please make sure HEIGHT_OFFSET is not 0."); 
+		}
+		else
+		{
+			llSetClickAction(CLICK_ACTION_SIT);
+			llSitTarget(<0.0, 0.0, HEIGHT_OFFSET>, ZERO_ROTATION);
+		}	
+		
         startPosition = llGetPos();  
-        destination = DEFAULT_DESTINATION + <0.0, 0.0, HEIGHT_OFFSET>; 
+        startRotation = llGetRot();
         
         if(LOAD_LANDMARK)
         {
@@ -57,17 +74,20 @@ default
     {
         if(requestID ==  query)
         {
-            destination = (vector)data + <0.0, 0.0, HEIGHT_OFFSET>;
+            DESTINATION = (vector)data + <0.0, 0.0, HEIGHT_OFFSET>;
         }  
     }
-   
+       
     changed(integer change)
     {
-        if(CHANGED_LINK)
+        if(change & CHANGED_LINK)
         {
-            teleport(destination);
+            if(llGetNumberOfPrims() != DEFAULT_PRIM_COUNT)
+            {
+				teleport();
+            }
         }
-        else if(CHANGED_INVENTORY)
+        else if(change & CHANGED_INVENTORY)
         {
             llResetScript();   
         }

@@ -3,7 +3,11 @@ integer INTERNAL_TEXTBOX_CHANNEL = -9999;
 integer SYNC_CHANNEL = 9998;
 integer TOTAL_PRIM_COUNT = 28;
 float DEFAULT_DISTANCE = 0.5;
+float DEFAULT_SIZE = 0.5;
 float DEFAULT_EXPAND = 2.0;
+vector DEFAULT_COLOR_A = <0.0, 0.0, 0.0>;
+vector DEFAULT_COLOR_B = <1.0, 1.0, 1.0>;
+
 list DIALOG_OPTIONS = ["Save", "Load", "Reset", "Expand", "SyncID"];
 
 list savedPositionX = [];
@@ -39,10 +43,19 @@ RandomCubeColor()
 
 ResetCubeColor()
 {     
+    SetCubeColor(DEFAULT_COLOR_A, DEFAULT_COLOR_B);
+}
+
+SetCubeColor(vector colorA, vector colorB)
+{
     llSetLinkPrimitiveParamsFast(LINK_ALL_CHILDREN, [
-    PRIM_COLOR, 0, <1,1,1>, 1.0,
-    PRIM_COLOR, 1, <1,1,1>, 1.0,
-    PRIM_COLOR, 3, <1,1,1>, 1.0]);
+    PRIM_COLOR, 2, colorA, 1.0,
+    PRIM_COLOR, 4, colorA, 1.0]);  
+    llSetLinkPrimitiveParamsFast(LINK_ALL_CHILDREN, [
+    PRIM_COLOR, 0, colorB, 1.0,
+    PRIM_COLOR, 1, colorB, 1.0,
+    PRIM_COLOR, 3, colorB, 1.0,
+    PRIM_COLOR, 5, colorB, 1.0]);   
 }
 
 SaveCube()
@@ -108,7 +121,9 @@ ResetCube()
         
         vector localPos = <posX, posY, posZ>;
         
-        llSetLinkPrimitiveParamsFast(index, [PRIM_POS_LOCAL, localPos]);
+        llSetLinkPrimitiveParamsFast(index, [
+            PRIM_POS_LOCAL, localPos,
+            PRIM_SIZE, <DEFAULT_SIZE, DEFAULT_SIZE, DEFAULT_SIZE>]);
         
         //llOwnerSay("index = " + (string)index + " ,x = " + (string)x + " ,y = " + (string)y + " ,z = " + (string)z);       
     }
@@ -142,7 +157,7 @@ default
 {
     state_entry()
     {
-        //ResetCube();
+        ResetCube();
         llTargetOmega(llRot2Up(llGetLocalRot()), 0 * PI/16, 1.0);
         llSetTimerEvent(0.0);
         syncID = "PUBLIC"; 
@@ -195,23 +210,23 @@ default
     
     listen( integer channel, string name, key id, string message )
     {   
-		//llOwnerSay("SyncID: " + syncID + "\nChannel " + (string)channel + ": " + message);
-		
+        //llOwnerSay("SyncID: " + syncID + "\nChannel " + (string)channel + ": " + message);
+        
         if(channel == INTERNAL_DIALOG_CHANNEL)
         {
             if(message == "Save")
             {
-				SaveCube();
+                SaveCube();
                 llSay(SYNC_CHANNEL, syncID + ",Save");
             }
             else if(message == "Load")
             {
-				LoadCube();
+                LoadCube();
                 llSay(SYNC_CHANNEL, syncID + ",Load");  
             }                
             else if(message == "Reset")
             {
-				ResetCube();
+                ResetCube();
                 llSay(SYNC_CHANNEL, syncID + ",Reset");  
             }
             else if(message == "Expand")
@@ -221,16 +236,16 @@ default
             }
             else if(message == "Start Looping")
             {
-				isLooping = TRUE;
-				llSetTimerEvent(1.5); 			
+                isLooping = TRUE;
+                llSetTimerEvent(1.5);             
                 llSay(SYNC_CHANNEL, syncID + ",Start Looping");   
             }
             else if(message == "Stop Looping")
             {
-				isLooping = FALSE;   
-				loopNumber = 0;         
-				llSetTimerEvent(0.0);
-				ResetCube();     			
+                isLooping = FALSE;   
+                loopNumber = 0;         
+                llSetTimerEvent(0.0);
+                ResetCube();                 
                 llSay(SYNC_CHANNEL, syncID + ",Stop Looping");   
             }        
             else if(message == "SyncID")
@@ -238,15 +253,15 @@ default
                 llTextBox(llGetOwner(), "SyncID: " + syncID, INTERNAL_TEXTBOX_CHANNEL);
                 internalTextboxHandle = llListen(INTERNAL_TEXTBOX_CHANNEL, "", "", "");                  
             }
-			llListenRemove(internalDialogHandle);			
+            llListenRemove(internalDialogHandle);            
         }
         else if(channel == INTERNAL_TEXTBOX_CHANNEL)
         {
-			if(syncID != "")
-			{
-				syncID = message;
-				llListenRemove(internalTextboxHandle);
-			}
+            if(syncID != "")
+            {
+                syncID = message;
+                llListenRemove(internalTextboxHandle);
+            }
         }
         else if(channel == SYNC_CHANNEL)
         {
