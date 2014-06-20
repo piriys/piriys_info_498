@@ -1,3 +1,9 @@
+/*
+Piriya Saengsuwarn
+This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
+http://creativecommons.org/licenses/by-nc/4.0/
+*/
+
 /*v### Music Changer Settings - Make Changes Below ###v*/
 string BGM_NAME = "MOVE_FORWARD"; //Background Music name
 /*^### Music Changer Settings - Make Changes Above ###^*/

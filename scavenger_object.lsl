@@ -1,3 +1,9 @@
+/*
+Piriya Saengsuwarn
+This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
+http://creativecommons.org/licenses/by-nc/4.0/
+*/
+
 /*v### Scavenger Object Settings - Make Changes Below ###v*/
 string TOKEN_NAME = "Calmness"; //VSD Value (Pick valid value from VSD_LIST below if this is not a decoy)
 string TRIGGER_ID = "Calmness Token Dispenser"; //Object name - Make sure this matches with the trigger plate/button settings in scavenger_trigger_button.lsl or scavenger_trigger_plate.lsl, meaningful name preferred

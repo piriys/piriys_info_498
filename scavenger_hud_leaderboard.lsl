@@ -1,3 +1,9 @@
+/*
+Piriya Saengsuwarn
+This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
+http://creativecommons.org/licenses/by-nc/4.0/
+*/
+
 //Global Constants
 string SINGLEPLAYER_API_URL = "http://www.crimsondash.com/SLapi/api/MB/CreateSPGameSession?";
 string GAME_NAME = "Value Sensitive Design Scavenger Hunt";

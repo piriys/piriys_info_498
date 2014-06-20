@@ -1,3 +1,9 @@
+/*
+Piriya Saengsuwarn
+This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
+http://creativecommons.org/licenses/by-nc/4.0/
+*/
+
 /*v### NPC Settings - Make Changes Below ###v*/
 string TRIGGER_ID = "Patrol Guard"; //NPC Name
 /*^### NPC Settings - Make Changes Above ###^*/
